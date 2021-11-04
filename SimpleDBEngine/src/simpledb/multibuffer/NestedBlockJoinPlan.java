@@ -46,7 +46,7 @@ public class NestedBlockJoinPlan implements Plan {
    public Scan open() {
       Scan leftscan = lhs.open();
       TempTable tt = copyRecordsFrom(rhs);
-      return new MultibufferProductScan(tx, leftscan, tt.tableName(), tt.getLayout());
+      return new NestedBlockJoinScan(tx, leftscan, tt.tableName(), tt.getLayout());
    }
 
    /**

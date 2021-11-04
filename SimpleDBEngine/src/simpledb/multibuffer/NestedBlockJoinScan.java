@@ -18,7 +18,7 @@ public class NestedBlockJoinScan implements Scan {
    private String filename;
    private Layout layout;
    private int chunksize, nextblknum, filesize;
-
+   private Predicate pred;
 
    /**
     * Creates the scan class for the product of the LHS scan and a table.
@@ -57,10 +57,10 @@ public class NestedBlockJoinScan implements Scan {
     * @see Scan#next()
     */
    public boolean next() {
-      while (!prodscan.next()) // While the product scan has no more records
-         if (!useNextChunk()) // If there are no more chunks left to scan with
-            // Insert logic here to handle predicate testing
-            return false;
+      while (!pred.isSatisfied(prodscan)) // skip over records that don't match the predicate
+         while (!prodscan.next()) // While the product scan has no more records
+            if (!useNextChunk()) // If there are no more chunks left to scan with
+               return false;
       return true;
    }
    
