@@ -64,12 +64,13 @@ class TablePlanner {
       Predicate joinpred = mypred.joinSubPred(myschema, currsch);
       if (joinpred == null)
          return null;
+      // Select Plan p based on cost estimation for IndexJoin, MergeJoin and BlockNestedJoin in blocks accessed
       Plan p = makeIndexJoin(current, currsch);
       if (p == null)
          p = makeProductJoin(current, currsch);
       return p;
    }
-   
+
    /**
     * Constructs a product plan of the specified plan and
     * this table.
