@@ -1,6 +1,8 @@
 package simpledb.opt;
 
 import java.util.Map;
+
+import simpledb.multibuffer.NestedBlockJoinPlan;
 import simpledb.tx.Transaction;
 import simpledb.record.*;
 import simpledb.query.*;
@@ -66,8 +68,11 @@ class TablePlanner {
          return null;
       // Select Plan p based on cost estimation for IndexJoin, MergeJoin and BlockNestedJoin in blocks accessed
       Plan p = makeIndexJoin(current, currsch);
-      if (p == null)
-         p = makeProductJoin(current, currsch);
+      if (p == null) {
+         p = makeNestedBlockJoin(current, currsch);
+         if (p == null)
+            p = makeProductJoin(current, currsch);
+      }
       return p;
    }
 
@@ -106,7 +111,12 @@ class TablePlanner {
       }
       return null;
    }
-   
+
+   private Plan makeNestedBlockJoin(Plan current, Schema currsch) {
+     // Plan p = addSelectPred(myplan);
+      return new NestedBlockJoinPlan(tx, current, myplan, mypred.joinSubPred(currsch, myschema));
+   }
+
    private Plan makeProductJoin(Plan current, Schema currsch) {
       Plan p = makeProductPlan(current);
       return addJoinPred(p, currsch);

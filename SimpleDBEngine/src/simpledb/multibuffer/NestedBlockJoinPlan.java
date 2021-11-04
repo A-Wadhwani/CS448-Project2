@@ -3,6 +3,8 @@ package simpledb.multibuffer;
 import simpledb.materialize.MaterializePlan;
 import simpledb.materialize.TempTable;
 import simpledb.plan.Plan;
+import simpledb.plan.ProductPlan;
+import simpledb.query.Predicate;
 import simpledb.query.Scan;
 import simpledb.query.UpdateScan;
 import simpledb.record.Schema;
@@ -17,6 +19,7 @@ public class NestedBlockJoinPlan implements Plan {
    private Transaction tx;
    private Plan lhs, rhs;
    private Schema schema = new Schema();
+   private Predicate pred;
 
    /**
     * Creates a product plan for the specified queries.
@@ -24,13 +27,29 @@ public class NestedBlockJoinPlan implements Plan {
     * @param rhs the plan for the RHS query
     * @param tx the calling transaction
     */
-   public NestedBlockJoinPlan(Transaction tx, Plan lhs, Plan rhs) {
+   public NestedBlockJoinPlan(Transaction tx, Plan lhs, Plan rhs, Predicate pred) {
       this.tx = tx;
+      if (swapToOptimize(lhs, rhs)){
+         System.out.println("Swapped");
+         Plan temp = lhs;
+         lhs = rhs;
+         rhs = temp;
+      }
       this.lhs = new MaterializePlan(tx, lhs);
       this.rhs = rhs;
+      this.pred = pred;
       schema.addAll(lhs.schema());
       schema.addAll(rhs.schema());
    }
+
+   private static boolean swapToOptimize(Plan p1, Plan p2) {
+      Plan prod1 = new ProductPlan(p1, p2);
+      Plan prod2 = new ProductPlan(p2, p1);
+      int b1 = prod1.blocksAccessed();
+      int b2 = prod2.blocksAccessed();
+      return (b1 < b2);
+   }
+
 
    /**
     * A scan for this query is created and returned, as follows.
@@ -46,7 +65,7 @@ public class NestedBlockJoinPlan implements Plan {
    public Scan open() {
       Scan leftscan = lhs.open();
       TempTable tt = copyRecordsFrom(rhs);
-      return new NestedBlockJoinScan(tx, leftscan, tt.tableName(), tt.getLayout());
+      return new NestedBlockJoinScan(tx, leftscan, tt.tableName(), tt.getLayout(), pred);
    }
 
    /**

@@ -12,6 +12,9 @@ public class BufferMgr {
    private Buffer[] bufferpool;
    private int numAvailable;
    private static final long MAX_TIME = 10000; // 10 seconds
+
+   static int hits;
+   static int misses;
    
    /**
     * Creates a buffer manager having the specified number 
@@ -114,13 +117,16 @@ public class BufferMgr {
    private Buffer findExistingBuffer(BlockId blk) {
       for (Buffer buff : bufferpool) {
          BlockId b = buff.block();
-         if (b != null && b.equals(blk))
+         if (b != null && b.equals(blk)) {
+            hits++;
             return buff;
+         }
       }
       return null;
    }
    
    private Buffer chooseUnpinnedBuffer() {
+      misses++;
       for (Buffer buff : bufferpool)
          if (!buff.isPinned())
          return buff;

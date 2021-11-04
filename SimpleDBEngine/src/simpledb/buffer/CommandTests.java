@@ -79,8 +79,9 @@ public class CommandTests {
         int count = 0;
         while (rs.next()) {
             count++;
-        } // Going through entire void set.
+        } // Going through entire result set.
 
+        System.out.println("Number of records in join: " + count);
         conn.close();
 
     }
@@ -181,8 +182,9 @@ public class CommandTests {
         int count = 0;
         while (rs.next()) {
             count++;
-        } // Going through entire void set.
+        } // Going through entire result set.
 
+        System.out.println("Number of records in join: " + count);
         conn.close();
 
     }
@@ -436,14 +438,14 @@ public class CommandTests {
 
     public static void main(String[] args) {
         try {
-            createTableTests();
-            joinTableTests();
-            selectTableTests();
-            largeJoinTableTests();
-            updateTableTests();
-            deleteFromTableTests();
-            randomizedTests();
-        } catch (SQLException | FileNotFoundException throwables) {
+//            createTableTests();
+//            joinTableTests();
+//            selectTableTests();
+//            largeJoinTableTests();
+            largeJoinTableTest(300);
+            System.out.println("hits: " + BufferMgr.hits);
+            System.out.println("misses: " + BufferMgr.misses);
+        } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
     }

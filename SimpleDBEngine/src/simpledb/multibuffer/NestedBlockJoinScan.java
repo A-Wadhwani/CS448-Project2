@@ -7,6 +7,8 @@ import simpledb.query.Scan;
 import simpledb.record.Layout;
 import simpledb.tx.Transaction;
 
+import java.sql.SQLOutput;
+
 /** 
  * The Scan class for the multi-buffer version of the
  * <i>product</i> operator.
@@ -26,11 +28,12 @@ public class NestedBlockJoinScan implements Scan {
     * @param layout the metadata for the RHS table
     * @param tx the current transaction
     */
-   public NestedBlockJoinScan(Transaction tx, Scan lhsscan, String tblname, Layout layout) {
+   public NestedBlockJoinScan(Transaction tx, Scan lhsscan, String tblname, Layout layout, Predicate pred) {
       this.tx = tx;
       this.lhsscan = lhsscan;
       this.filename = tblname + ".tbl";
       this.layout = layout;
+      this.pred = pred;
       filesize = tx.size(filename);
       int available = tx.availableBuffs();
       chunksize = BufferNeeds.bestFactor(available, filesize);
@@ -57,11 +60,11 @@ public class NestedBlockJoinScan implements Scan {
     * @see Scan#next()
     */
    public boolean next() {
-      while (!pred.isSatisfied(prodscan)) // skip over records that don't match the predicate
-         while (!prodscan.next()) // While the product scan has no more records
+      while (!prodscan.next() ) // skip over records that don't match the predicate
+         // While the product scan has no more records
             if (!useNextChunk()) // If there are no more chunks left to scan with
                return false;
-      return true;
+      return pred.isSatisfied(prodscan) || next();
    }
    
    /**
