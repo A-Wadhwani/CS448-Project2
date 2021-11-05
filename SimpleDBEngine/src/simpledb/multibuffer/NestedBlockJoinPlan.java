@@ -36,7 +36,7 @@ public class NestedBlockJoinPlan implements Plan {
          rhs = temp;
       }
       this.lhs = new MaterializePlan(tx, lhs);
-      this.rhs = rhs;
+      this.rhs = new MaterializePlan(tx, rhs);
       this.pred = pred;
       schema.addAll(lhs.schema());
       schema.addAll(rhs.schema());
@@ -63,9 +63,12 @@ public class NestedBlockJoinPlan implements Plan {
     * @see Plan#open()
     */
    public Scan open() {
-      Scan leftscan = lhs.open();
-      TempTable tt = copyRecordsFrom(rhs);
-      return new NestedBlockJoinScan(tx, leftscan, tt.tableName(), tt.getLayout(), pred);
+
+//      Scan leftscan = lhs.open();
+      Plan lhsTT = lhs ;// copyRecordsFrom(lhs);
+      Plan rhsTT = rhs ;//copyRecordsFrom(rhs);
+      // return new NestedBlockJoinScan(tx, lhsTT.tableName(), lhsTT.getLayout(), rhsTT.tableName(), rhsTT.getLayout(), pred);
+      return new NestedBlockJoinScan(tx, lhsTT.open(), rhsTT.open(), pred);
    }
 
    /**
@@ -120,14 +123,15 @@ public class NestedBlockJoinPlan implements Plan {
    }
 
    private TempTable copyRecordsFrom(Plan p) {
-      Scan   src = p.open(); 
+      Scan   src = p.open();
       Schema sch = p.schema();
       TempTable t = new TempTable(tx, sch);
       UpdateScan dest = (UpdateScan) t.open();
       while (src.next()) {
          dest.insert();
-         for (String fldname : sch.fields())
+         for (String fldname : sch.fields()) {
             dest.setVal(fldname, src.getVal(fldname));
+         }
       }
       src.close();
       dest.close();

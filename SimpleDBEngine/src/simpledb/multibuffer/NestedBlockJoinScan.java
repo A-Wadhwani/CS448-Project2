@@ -1,45 +1,36 @@
 package simpledb.multibuffer;
 
-import simpledb.query.Constant;
-import simpledb.query.Predicate;
-import simpledb.query.ProductScan;
-import simpledb.query.Scan;
+import simpledb.query.*;
 import simpledb.record.Layout;
+import simpledb.record.TableScan;
 import simpledb.tx.Transaction;
 
 import java.sql.SQLOutput;
 
-/** 
+/**
  * The Scan class for the multi-buffer version of the
  * <i>product</i> operator.
  * @author Edward Sciore
  */
 public class NestedBlockJoinScan implements Scan {
    private Transaction tx;
-   private Scan lhsscan, rhsscan=null, prodscan;
-   private String filename;
-   private Layout layout;
-   private int chunksize, nextblknum, filesize;
+
+   private Scan lhsscan, rhsscan;
+
    private Predicate pred;
 
-   /**
-    * Creates the scan class for the product of the LHS scan and a table.
-    * @param lhsscan the LHS scan
-    * @param layout the metadata for the RHS table
-    * @param tx the current transaction
-    */
-   public NestedBlockJoinScan(Transaction tx, Scan lhsscan, String tblname, Layout layout, Predicate pred) {
-      this.tx = tx;
-      this.lhsscan = lhsscan;
-      this.filename = tblname + ".tbl";
-      this.layout = layout;
-      this.pred = pred;
-      filesize = tx.size(filename);
-      int available = tx.availableBuffs();
-      chunksize = BufferNeeds.bestFactor(available, filesize);
-      beforeFirst();
-   }
-   
+    /**
+     * Creates the scan class for the product of the LHS scan and a table.
+     * @param tx the current transaction
+     */
+    public NestedBlockJoinScan(Transaction tx, Scan lhs, Scan rhs, Predicate pred) {
+        this.tx = tx;
+        this.lhsscan = lhs;
+        this.rhsscan = rhs;
+        this.pred = pred;
+        beforeFirst();
+    }
+
    /**
     * Positions the scan before the first record.
     * That is, the LHS scan is positioned at its first record,
@@ -47,10 +38,11 @@ public class NestedBlockJoinScan implements Scan {
     * @see Scan#beforeFirst()
     */
    public void beforeFirst() {
-      nextblknum = 0;
-      useNextChunk();
+       lhsscan.beforeFirst();
+       rhsscan.beforeFirst();
+       lhsscan.next();
    }
-   
+
    /**
     * Moves to the next record in the current scan.
     * If there are no more records in the current chunk,
@@ -60,73 +52,72 @@ public class NestedBlockJoinScan implements Scan {
     * @see Scan#next()
     */
    public boolean next() {
-      while (!prodscan.next() ) // skip over records that don't match the predicate
-         // While the product scan has no more records
-            if (!useNextChunk()) // If there are no more chunks left to scan with
+       if (!rhsscan.next()){ // maybe a while loop
+           if (!lhsscan.next()){
                return false;
-      return pred.isSatisfied(prodscan) || next();
+           }
+           rhsscan.beforeFirst();
+           return next();
+       }
+       return pred.isSatisfied(this) || next();
    }
-   
+
    /**
     * Closes the current scans.
     * @see Scan#close()
     */
    public void close() {
-      prodscan.close();
+      lhsscan.close();
+      rhsscan.close();
    }
-   
-   /** 
+
+   /**
     * Returns the value of the specified field.
     * The value is obtained from whichever scan
     * contains the field.
     * @see Scan#getVal(String)
     */
    public Constant getVal(String fldname) {
-      return prodscan.getVal(fldname);
+       if (lhsscan.hasField(fldname)){
+           return lhsscan.getVal(fldname);}
+       else {
+           return rhsscan.getVal(fldname);
+       }
    }
-   
-   /** 
+
+   /**
     * Returns the integer value of the specified field.
     * The value is obtained from whichever scan
     * contains the field.
     * @see Scan#getInt(String)
     */
    public int getInt(String fldname) {
-      return prodscan.getInt(fldname);
+       if (lhsscan.hasField(fldname))
+           return lhsscan.getInt(fldname);
+       else
+           return rhsscan.getInt(fldname);
    }
-   
-   /** 
+
+   /**
     * Returns the string value of the specified field.
     * The value is obtained from whichever scan
     * contains the field.
     * @see Scan#getString(String)
     */
    public String getString(String fldname) {
-      return prodscan.getString(fldname);
+       if (lhsscan.hasField(fldname))
+           return lhsscan.getString(fldname);
+       else
+           return rhsscan.getString(fldname);
    }
-   
+
    /**
     * Returns true if the specified field is in
     * either of the underlying scans.
     * @see Scan#hasField(String)
     */
    public boolean hasField(String fldname) {
-      return prodscan.hasField(fldname);
-   }
-   
-   private boolean useNextChunk() {
-      if (nextblknum >= filesize)
-         return false;
-      if (rhsscan != null)
-         rhsscan.close();
-      int end = nextblknum + chunksize - 1;
-      if (end >= filesize)
-         end = filesize - 1;
-      rhsscan = new ChunkScan(tx, filename, layout, nextblknum, end);
-      lhsscan.beforeFirst();
-      prodscan = new ProductScan(lhsscan, rhsscan);
-      nextblknum = end + 1;
-      return true;
+      return lhsscan.hasField(fldname) && rhsscan.hasField(fldname);
    }
 }
 
