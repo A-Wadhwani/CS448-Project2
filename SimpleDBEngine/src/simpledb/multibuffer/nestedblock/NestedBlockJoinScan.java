@@ -1,22 +1,21 @@
 package simpledb.multibuffer.nestedblock;
 
-import simpledb.query.*;
-import simpledb.record.Layout;
+import simpledb.query.Constant;
+import simpledb.query.Predicate;
+import simpledb.query.Scan;
 import simpledb.record.TableScan;
 import simpledb.tx.BufferList;
 import simpledb.tx.Transaction;
 
-import java.sql.SQLOutput;
-
 /**
- * The Scan class for the multi-buffer version of the
- * <i>product</i> operator.
- * @author Edward Sciore
+ * The Scan class for the a nested block loop
+ * join operation
+ * @author Aryan Wadhwani
  */
 public class NestedBlockJoinScan implements Scan {
    private Transaction tx;
 
-   private Scan lhsscan, rhsscan;
+   private TableScan lhsscan, rhsscan;
 
    private Predicate pred;
 
@@ -24,7 +23,7 @@ public class NestedBlockJoinScan implements Scan {
      * Creates the scan class for the product of the LHS scan and a table.
      * @param tx the current transaction
      */
-    public NestedBlockJoinScan(Transaction tx, Scan lhs, Scan rhs, Predicate pred) {
+    public NestedBlockJoinScan(Transaction tx, TableScan lhs, TableScan rhs, Predicate pred) {
         this.tx = tx;
         this.lhsscan = lhs;
         this.rhsscan = rhs;
@@ -53,15 +52,30 @@ public class NestedBlockJoinScan implements Scan {
     * @see Scan#next()
     */
    public boolean next() {
-       System.out.println(BufferList.pins.toString());
-       if (!rhsscan.next()){ // maybe a while loop
-           if (!lhsscan.next()){
-               return false;
+       if (rhsscan.atEndOfBlock()){ // Finished the right block
+           if (lhsscan.atEndOfBlock()){ // Finished the left block too
+               if (!rhsscan.next()){ // No more right blocks: We need to move to next left block
+                if (!lhsscan.next()){
+                    return false; // No more left blocks: We're done
+                } else {
+                    rhsscan.beforeFirst(); // Restart reading from the beginning
+                    rhsscan.next();
+                }
+               } else {
+                   lhsscan.restartBlock(); // Restart the left block, scan through everything in the right
+                   lhsscan.next();
+                   // Maybe include a lhsscan.next() here?
+               }
+           } else { // Left block isn't done: keep going through left block records
+               lhsscan.next();
+               rhsscan.restartBlock();
+               rhsscan.next();
+               // Maybe include a rhsscan.next() here?
            }
-           rhsscan.beforeFirst();
-           return next();
+       } else {
+         rhsscan.next(); // Keep checking right blocks with the left block
        }
-       return pred.isSatisfied(this) || next();
+       return pred.isSatisfied(this) || next(); // Check if predicate works here, if not, keep going
    }
 
    /**

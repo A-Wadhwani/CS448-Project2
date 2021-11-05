@@ -69,8 +69,8 @@ class TablePlanner {
       // Select Plan p based on cost estimation for IndexJoin, MergeJoin and BlockNestedJoin in blocks accessed
       Plan p = makeIndexJoin(current, currsch);
       if (p == null) {
-//         p = makeNestedBlockJoin(current, currsch);
-//         if (p == null)
+         p = makeNestedBlockJoin(current, currsch);
+         if (p == null)
             p = makeProductJoin(current, currsch);
       }
       return p;

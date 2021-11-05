@@ -8,6 +8,7 @@ import simpledb.query.Predicate;
 import simpledb.query.Scan;
 import simpledb.query.UpdateScan;
 import simpledb.record.Schema;
+import simpledb.record.TableScan;
 import simpledb.tx.Transaction;
 
 /**
@@ -35,10 +36,13 @@ public class NestedBlockJoinPlan implements Plan {
          lhs = rhs;
          rhs = temp;
          isSwapped = true;
+         System.out.println("Swapped");
       }
       this.lhs = lhs;
       this.rhs = rhs;
       this.pred = pred;
+      System.out.println(lhs.schema().fields());
+      System.out.println(rhs.schema().fields());
       schema.addAll(lhs.schema());
       schema.addAll(rhs.schema());
    }
@@ -48,7 +52,7 @@ public class NestedBlockJoinPlan implements Plan {
       Plan prod2 = new ProductPlan(p2, p1);
       int b1 = prod1.blocksAccessed();
       int b2 = prod2.blocksAccessed();
-      return (b1 < b2);
+      return (b1 >= b2);
    }
 
 
@@ -64,16 +68,15 @@ public class NestedBlockJoinPlan implements Plan {
     * @see Plan#open()
     */
    public Scan open() {
-      UpdateScan lhsTT;
-      UpdateScan rhsTT;
+      TableScan lhsTT;
+      TableScan rhsTT;
       if (!isSwapped){
-         lhsTT =  copyRecordsFrom(lhs).open();
-         rhsTT = (UpdateScan) rhs.open();
+         lhsTT = (TableScan) copyRecordsFrom(lhs).open();
+         rhsTT = (TableScan) rhs.open();
       } else {
-        lhsTT = (UpdateScan) lhs.open();
-        rhsTT = copyRecordsFrom(rhs).open();
+        lhsTT = (TableScan) lhs.open();
+        rhsTT = (TableScan) copyRecordsFrom(rhs).open();
       }
-
       return new NestedBlockJoinScan(tx, lhsTT, rhsTT, pred);
    }
 

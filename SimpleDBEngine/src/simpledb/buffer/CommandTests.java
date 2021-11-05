@@ -50,6 +50,9 @@ public class CommandTests {
                 "from STUDENT, MAJOR " +
                 "where MId = MajorId";
 
+
+        BufferMgr.hits = 0;
+        BufferMgr.misses = 0;
         ResultSet rs = stmt.executeQuery(s);
         int count = 0;
         while (rs.next()) {
@@ -117,48 +120,16 @@ public class CommandTests {
                 "where MId = MajorId and DeptID = MId";
 
         ResultSet rs = stmt.executeQuery(s);
+
+        BufferMgr.hits = 0;
+        BufferMgr.misses = 0;
+
         int count = 0;
         while (rs.next()) {
             count++;
         } // Going through entire result set.
 
         System.out.println("Number of records in join: " + count);
-        conn.close();
-
-    }
-
-    public static void updateTableTest(int n) throws SQLException {
-        EmbeddedDriver d = new EmbeddedDriver();
-        String url = "jdbc:simpledb:studentdb" + UUID.randomUUID().toString().substring(9);
-        //Makes new database each time
-        Connection conn = d.connect(url, null);
-        Statement stmt = conn.createStatement();
-
-        String s = "create table STUDENT(SId int, SFirstName varchar(40), " +
-                "SLastName varchar(40), MajorId int, GradYear int)";
-        stmt.executeUpdate(s);
-        System.out.println("Table STUDENT created.");
-
-        ArrayList<Name> names = Name.generateNames(n);
-
-        s = "insert into STUDENT(SId, SFirstName, SLastName, MajorId, GradYear) values ";
-        String[] studvals = new String[n];
-
-        for (int i = 0; i < n; i++) {
-            studvals[i] = String.format("(%d, '%s', '%s', %d, %d)", (i + 1), names.get(i).firstName,
-                    names.get(i).lastName, rand.nextInt(courseNames.length), randomGradYear());
-        }
-        for (String studval : studvals) stmt.executeUpdate(s + studval);
-        System.out.println("STUDENT records inserted.");
-
-
-        for (int i = 0; i < n * 0.75; i++) {
-            String cmd = "update STUDENT "
-                    + "set MajorId=" + rand.nextInt(courseNames.length) + " "
-                    + "where SId = " + rand.nextInt(n) + 1;
-            stmt.executeUpdate(cmd);
-        }
-
         conn.close();
 
     }
@@ -217,12 +188,18 @@ public class CommandTests {
         return grade;
     }
 
+
     private static int randomGradYear() {
         return 2021 + rand.nextInt(4);
     }
 
     private static final String[] courseNames = new String[]{"Computer Science", "Chemical Engineering",
             "Mechanical Engineering", "Aerospace Engineering"};
+
+    private static final String[] courseNames1 = new String[]{"Computer Science", "Chemical Engineering",
+            "Mechanical Engineering", "Aerospace Engineering", "Computer Engineering", "Electrical Engineering",
+            "Environmental Engineering", "Biomedical Engineering", "Biology", "Physics", "Chemistry", "English",
+            "Psychology", "Economics", "Management", "Statistics", "French", "German", "Civil Engineering", "Art Design"};
 
     private static final String[] courseAbs = new String[]{"CS", "CHE", "ME", "ASE", "ECE", "EE", "EEE", "BME", "BIO",
             "PHY", "CHM", "ENG", "PSY", "ECON", "MGMT", "STAT", "FRE", "GER", "CE", "ART"};
