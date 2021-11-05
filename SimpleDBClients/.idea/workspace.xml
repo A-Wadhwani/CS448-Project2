@@ -5,8 +5,38 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="380b690f-0f8e-45f8-95cf-3f25b2150971" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../SimpleDBEngine/studentdb/course.tbl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../SimpleDBEngine/studentdb/dept.tbl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../SimpleDBEngine/studentdb/enroll.tbl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../SimpleDBEngine/studentdb/enrollsid1.tbl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../SimpleDBEngine/studentdb/enrollsid2.tbl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../SimpleDBEngine/studentdb/enrollsid4.tbl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../SimpleDBEngine/studentdb/enrollsid6.tbl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../SimpleDBEngine/studentdb/enrollsid8.tbl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../SimpleDBEngine/studentdb/idxcat.tbl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../SimpleDBEngine/studentdb/section.tbl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../SimpleDBEngine/studentdb/student.tbl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../SimpleDBEngine/studentdb/temp1.tbl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../SimpleDBEngine/studentdb/temp2.tbl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../SimpleDBEngine/studentdb/temp3.tbl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../SimpleDBEngine/studentdb/temp4.tbl" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/derbyclient/BadStudentMajor.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/derbyclient/ChangeMajor.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/derbyclient/CleverFindMajors.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/derbyclient/CreateStudentDB.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/derbyclient/CreateTestDB.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/derbyclient/EmbeddedStudentMajor.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/derbyclient/FindMajors.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/derbyclient/PreparedFindMajors.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/derbyclient/StudentMajor.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SimpleDBEngine/src/simpledb/buffer/BufferMgr.java" beforeDir="false" afterPath="$PROJECT_DIR$/../SimpleDBEngine/src/simpledb/buffer/BufferMgr.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../SimpleDBEngine/src/simpledb/opt/TablePlanner.java" beforeDir="false" afterPath="$PROJECT_DIR$/../SimpleDBEngine/src/simpledb/opt/TablePlanner.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SimpleDBEngine/src/simpledb/tx/Transaction.java" beforeDir="false" afterPath="$PROJECT_DIR$/../SimpleDBEngine/src/simpledb/tx/Transaction.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SimpleDBEngine/studentdb/fldcat.tbl" beforeDir="false" afterPath="$PROJECT_DIR$/../SimpleDBEngine/studentdb/fldcat.tbl" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SimpleDBEngine/studentdb/simpledb.log" beforeDir="false" afterPath="$PROJECT_DIR$/../SimpleDBEngine/studentdb/simpledb.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SimpleDBEngine/studentdb/tblcat.tbl" beforeDir="false" afterPath="$PROJECT_DIR$/../SimpleDBEngine/studentdb/tblcat.tbl" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,6 +82,7 @@
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
+    <property name="last_directory_selection" value="$PROJECT_DIR$/src" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_package_manager_path" value="npm" />
     <property name="project.structure.last.edited" value="Modules" />
@@ -59,7 +90,7 @@
     <property name="project.structure.side.proportion" value="0.0" />
     <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
   </component>
-  <component name="RunManager" selected="Application.BufferMgrProfiling">
+  <component name="RunManager" selected="Application.SimpleIJ">
     <configuration default="true" type="ArquillianJUnit" factoryName="" nameIsGenerated="true">
       <option name="arquillianRunConfiguration">
         <value>
@@ -110,8 +141,22 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="SimpleIJ" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="simpleclient.SimpleIJ" />
+      <module name="SimpleDBClients" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="simpleclient.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.SimpleIJ" />
         <item itemvalue="Application.BufferMgrProfiling" />
         <item itemvalue="Application.BufferMgrTest" />
         <item itemvalue="Application.CreateStudentDB" />
@@ -137,6 +182,7 @@
       <workItem from="1633488695638" duration="594000" />
       <workItem from="1633549909830" duration="57000" />
       <workItem from="1635990026744" duration="1218000" />
+      <workItem from="1636130586576" duration="609000" />
     </task>
     <servers />
   </component>

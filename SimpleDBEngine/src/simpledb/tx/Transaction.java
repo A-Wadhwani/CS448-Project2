@@ -52,6 +52,8 @@ public class Transaction {
    public void commit() {
       recoveryMgr.commit();
       System.out.println("transaction " + txnum + " committed");
+      System.out.println("transaction hits: " + BufferMgr.hits);
+      System.out.println("transaction misses: " + BufferMgr.misses);
       concurMgr.release();
       mybuffers.unpinAll();
    }

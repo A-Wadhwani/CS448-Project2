@@ -3,6 +3,8 @@ package simpledb.opt;
 import java.util.Map;
 import java.util.Scanner;
 
+import simpledb.buffer.Buffer;
+import simpledb.buffer.BufferMgr;
 import simpledb.multibuffer.nestedblock.NestedBlockJoinPlan;
 import simpledb.tx.Transaction;
 import simpledb.record.*;
@@ -92,6 +94,8 @@ class TablePlanner {
             default:
                p = makeProductJoin(current, currsch);
          }
+         BufferMgr.hits = 0;
+         BufferMgr.misses = 0;
       } else {
          // Select Plan p based on cost estimation for IndexJoin, MergeJoin and BlockNestedJoin in blocks accessed
          p = makeIndexJoin(current, currsch);

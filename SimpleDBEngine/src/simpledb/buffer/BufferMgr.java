@@ -13,8 +13,8 @@ public class BufferMgr {
    private int numAvailable;
    private static final long MAX_TIME = 10000; // 10 seconds
 
-   static int hits;
-   static int misses;
+   public static int hits;
+   public static int misses;
    
    /**
     * Creates a buffer manager having the specified number 
