@@ -4,10 +4,12 @@ import simpledb.materialize.MaterializePlan;
 import simpledb.materialize.TempTable;
 import simpledb.plan.Plan;
 import simpledb.plan.ProductPlan;
+import simpledb.plan.TablePlan;
 import simpledb.query.Predicate;
 import simpledb.query.Scan;
 import simpledb.query.UpdateScan;
 import simpledb.record.Schema;
+import simpledb.record.TableScan;
 import simpledb.tx.Transaction;
 
 /**
@@ -20,6 +22,7 @@ public class NestedBlockJoinPlan implements Plan {
    private Plan lhs, rhs;
    private Schema schema = new Schema();
    private Predicate pred;
+   private boolean isSwapped = false;
 
    /**
     * Creates a product plan for the specified queries.
@@ -30,13 +33,13 @@ public class NestedBlockJoinPlan implements Plan {
    public NestedBlockJoinPlan(Transaction tx, Plan lhs, Plan rhs, Predicate pred) {
       this.tx = tx;
       if (swapToOptimize(lhs, rhs)){
-         System.out.println("Swapped");
          Plan temp = lhs;
          lhs = rhs;
          rhs = temp;
+         isSwapped = true;
       }
-      this.lhs = new MaterializePlan(tx, lhs);
-      this.rhs = new MaterializePlan(tx, rhs);
+      this.lhs = lhs;
+      this.rhs = rhs;
       this.pred = pred;
       schema.addAll(lhs.schema());
       schema.addAll(rhs.schema());
@@ -63,12 +66,17 @@ public class NestedBlockJoinPlan implements Plan {
     * @see Plan#open()
     */
    public Scan open() {
+      UpdateScan lhsTT;
+      UpdateScan rhsTT;
+      if (!isSwapped){
+         lhsTT =  copyRecordsFrom(lhs).open();
+         rhsTT = (UpdateScan) rhs.open();
+      } else {
+        lhsTT = (UpdateScan) lhs.open();
+        rhsTT = copyRecordsFrom(rhs).open();
+      }
 
-//      Scan leftscan = lhs.open();
-      Plan lhsTT = lhs ;// copyRecordsFrom(lhs);
-      Plan rhsTT = rhs ;//copyRecordsFrom(rhs);
-      // return new NestedBlockJoinScan(tx, lhsTT.tableName(), lhsTT.getLayout(), rhsTT.tableName(), rhsTT.getLayout(), pred);
-      return new NestedBlockJoinScan(tx, lhsTT.open(), rhsTT.open(), pred);
+      return new NestedBlockJoinScan(tx, lhsTT, rhsTT, pred);
    }
 
    /**
