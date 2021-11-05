@@ -8,9 +8,9 @@ import simpledb.buffer.*;
  * Manage the transaction's currently-pinned buffers. 
  * @author Edward Sciore
  */
-class BufferList {
+public class BufferList {
    private Map<BlockId,Buffer> buffers = new HashMap<>();
-   private List<BlockId> pins = new ArrayList<>();
+   public static List<BlockId> pins = new ArrayList<>();
    private BufferMgr bm;
   
    public BufferList(BufferMgr bm) {

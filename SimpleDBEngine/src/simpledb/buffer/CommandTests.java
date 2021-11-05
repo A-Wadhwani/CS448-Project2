@@ -10,31 +10,6 @@ import java.util.*;
 
 public class CommandTests {
 
-    public static void createTableTest(int n) throws SQLException {
-        EmbeddedDriver d = new EmbeddedDriver();
-        String url = "jdbc:simpledb:studentdb" + UUID.randomUUID().toString().substring(9); //Makes new database each time
-        Connection conn = d.connect(url, null);
-        Statement stmt = conn.createStatement();
-
-        String s = "create table STUDENT(SId int, SFirstName varchar(40), SLastName varchar(40), MajorId int, GradYear int)";
-        stmt.executeUpdate(s);
-        System.out.println("Table STUDENT created.");
-
-        ArrayList<Name> names = Name.generateNames(n);
-
-        s = "insert into STUDENT(SId, SFirstName, SLastName, MajorId, GradYear) values ";
-        String[] studvals = new String[n];
-
-        for (int i = 0; i < n; i++) {
-            studvals[i] = String.format("(%d, '%s', '%s', %d, %d)", (i + 1), names.get(i).firstName,
-                    names.get(i).lastName, rand.nextInt(courseNames.length), randomGradYear());
-        }
-        for (String studval : studvals) stmt.executeUpdate(s + studval);
-        System.out.println("STUDENT records inserted.");
-
-        conn.close();
-    }
-
     public static void joinTableTest(int n) throws SQLException {
         EmbeddedDriver d = new EmbeddedDriver();
         String url = "jdbc:simpledb:studentdb" + UUID.randomUUID().toString().substring(9); //Makes new database each time
@@ -82,43 +57,6 @@ public class CommandTests {
         } // Going through entire result set.
 
         System.out.println("Number of records in join: " + count);
-        conn.close();
-
-    }
-
-    public static void selectTableTest(int n) throws SQLException {
-        EmbeddedDriver d = new EmbeddedDriver();
-        String url = "jdbc:simpledb:studentdb" + UUID.randomUUID().toString().substring(9);
-        //Makes new database each time
-        Connection conn = d.connect(url, null);
-        Statement stmt = conn.createStatement();
-
-        String s = "create table STUDENT(SId int, SFirstName varchar(40), " +
-                "SLastName varchar(40), MajorId int, GradYear int)";
-        stmt.executeUpdate(s);
-        System.out.println("Table STUDENT created.");
-
-        ArrayList<Name> names = Name.generateNames(n);
-
-        s = "insert into STUDENT(SId, SFirstName, SLastName, MajorId, GradYear) values ";
-        String[] studvals = new String[n];
-
-        for (int i = 0; i < n; i++) {
-            studvals[i] = String.format("(%d, '%s', '%s', %d, %d)", (i + 1), names.get(i).firstName,
-                    names.get(i).lastName, rand.nextInt(courseNames.length), randomGradYear());
-        }
-        for (String studval : studvals) stmt.executeUpdate(s + studval);
-        System.out.println("STUDENT records inserted.");
-
-        s = "select SId, SFirstName, SLastName, MajorId " +
-                "from STUDENT";
-
-        ResultSet rs = stmt.executeQuery(s);
-        int count = 0;
-        while (rs.next()) {
-            count++;
-        } // Going through entire void set.
-
         conn.close();
 
     }
@@ -225,159 +163,11 @@ public class CommandTests {
 
     }
 
-    public static void deleteFromTableTest(int n) throws SQLException {
-        EmbeddedDriver d = new EmbeddedDriver();
-        String url = "jdbc:simpledb:studentdb" + UUID.randomUUID().toString().substring(9);
-        //Makes new database each time
-        Connection conn = d.connect(url, null);
-        Statement stmt = conn.createStatement();
-
-        String s = "create table STUDENT(SId int, SFirstName varchar(40), " +
-                "SLastName varchar(40), MajorId int, GradYear int)";
-        stmt.executeUpdate(s);
-        System.out.println("Table STUDENT created.");
-
-        ArrayList<Name> names = Name.generateNames(n);
-
-        s = "insert into STUDENT(SId, SFirstName, SLastName, MajorId, GradYear) values ";
-        String[] studvals = new String[n];
-
-        for (int i = 0; i < n; i++) {
-            studvals[i] = String.format("(%d, '%s', '%s', %d, %d)", (i + 1), names.get(i).firstName,
-                    names.get(i).lastName, rand.nextInt(courseNames.length), randomGradYear());
-        }
-        for (String studval : studvals) stmt.executeUpdate(s + studval);
-        System.out.println("STUDENT records inserted.");
-
-
-        for (int i = 0; i < n * 0.25; i++) {
-            int index = rand.nextInt(names.size());
-            s = "delete from STUDENT "
-                    + "where SFirstName = '" + names.get(index).firstName + "'";
-            names.remove(index);
-            stmt.executeUpdate(s);
-        }
-
-        // Larger Removals
-
-        s = "delete from STUDENT "
-                + "where GradYear = " + randomGradYear();
-        stmt.executeUpdate(s);
-        conn.close();
-
-    }
-
-    public static void randomizedTest(int n) throws SQLException {
-        EmbeddedDriver d = new EmbeddedDriver();
-        String url = "jdbc:simpledb:studentdb" + UUID.randomUUID().toString().substring(9);
-        //Makes new database each time
-        Connection conn = d.connect(url, null);
-        Statement stmt = conn.createStatement();
-
-        String s = "create table STUDENT(SId int, SFirstName varchar(40), " +
-                "SLastName varchar(40), MajorId int, GradYear int)";
-        stmt.executeUpdate(s);
-        System.out.println("Table STUDENT created.");
-
-        ArrayList<Name> names = Name.generateNames(2000);
-
-        s = "insert into STUDENT(SId, SFirstName, SLastName, MajorId, GradYear) values ";
-        String[] studvals = new String[n];
-
-        ArrayList<Integer> ids = new ArrayList<>();
-
-        for (int i = 0; i < n; i++) {
-            studvals[i] = String.format("(%d, '%s', '%s', %d, %d)", (i + 1), names.get(0).firstName,
-                    names.get(0).lastName, rand.nextInt(courseNames.length), randomGradYear());
-            names.remove(0);
-            ids.add((i + 1));
-        }
-        for (String studval : studvals) stmt.executeUpdate(s + studval);
-        System.out.println("STUDENT records inserted.");
-
-        s = "create table MAJOR(MId int, MajorName varchar(40), MajorAbbr varchar(5))";
-        stmt.executeUpdate(s);
-        System.out.println("Table MAJOR created.");
-
-        s = "insert into MAJOR(MId, MajorName, MajorAbbr) values ";
-        String[] majorvals = new String[courseNames.length];
-        for (int i = 0; i < courseNames.length; i++) {
-            majorvals[i] = String.format("(%d, '%s', '%s')", i, courseNames[i], courseAbs[i]);
-        }
-        for (String majorval : majorvals) stmt.executeUpdate(s + majorval);
-        System.out.println("MAJOR records inserted.");
-
-        int id = 0;
-        String cmd = "";
-
-        for (int i = 0; i < 200; i++) {
-            switch (rand.nextInt(5)) {
-                case 0: // Insertion
-                    s = "insert into STUDENT(SId, SFirstName, SLastName, MajorId, GradYear) values " +
-                            String.format("(%d, '%s', '%s', %d, %d)", ids.get(ids.size() - 1) + 1, names.get(0).firstName,
-                                    names.get(0).lastName, rand.nextInt(courseNames.length), randomGradYear());
-                    names.remove(0);
-                    stmt.executeUpdate(s);
-                    ids.add(ids.get(ids.size() - 1) + 1);
-                    break;
-                case 1: // Update
-                    id = ids.get(rand.nextInt(ids.size()));
-                    cmd = "update STUDENT "
-                            + "set MajorId=" + rand.nextInt(courseNames.length) + " "
-                            + "where SId = " + id;
-                    stmt.executeUpdate(cmd);
-                    break;
-                case 2: // Selection
-                    id = ids.get(rand.nextInt(ids.size()));
-                    s = "select SId, SFirstName, SLastName " +
-                            "from STUDENT " +
-                            "where SId = " + id;
-
-                    ResultSet rs = stmt.executeQuery(s);
-                    int count = 0;
-                    while (rs.next()) {
-                        count++;
-                    } // Going through entire void set.
-                    break;
-                case 3: // Deletion
-                    id = ids.get(rand.nextInt(ids.size()));
-                    ids.remove(Integer.valueOf(id));
-                    cmd = "delete from STUDENT "
-                            + "where SId = " + id;
-                    stmt.executeUpdate(cmd);
-                    break;
-                case 4: // Join
-                    id = ids.get(rand.nextInt(ids.size()));
-                    s = "select SId, SFirstName, SLastName, MId, MajorName, MajorAbbr " +
-                            "from STUDENT, MAJOR " +
-                            "where SId = " + id;
-                    ResultSet rs1 = stmt.executeQuery(s);
-                    int count1 = 0;
-                    while (rs1.next()) {
-                        count1++;
-                    } // Going through entire void set.
-            }
-        }
-
-        conn.close();
-
-    }
-
     /**
      * Specifies size of experiment
      */
     final static int[] nExperiments = new int[]{20, 40, 60, 80, 100, 140, 180, 220, 260, 300, 350, 400, 450, 500, 550,
             600, 650, 750, 800, 850, 900, 950, 1000};
-
-    /**
-     * Tests performance while Creating Tables of various sizes, specified by nExperiments
-     * Performance of buffers is evaluated by hits and misses
-     */
-    public static void createTableTests() throws FileNotFoundException, SQLException {
-        for (int n : nExperiments) {
-            createTableTest(n);
-        }
-    }
 
     /**
      * Tests performance while joining Tables of various sizes, specified by nExperiments, with a constant size table.
@@ -386,16 +176,6 @@ public class CommandTests {
     public static void joinTableTests() throws FileNotFoundException, SQLException {
         for (int n : nExperiments) {
             joinTableTest(n);
-        }
-    }
-
-    /**
-     * Tests performance while joining Tables of various sizes, specified by nExperiments, with a constant size table.
-     * Performance of buffers is evaluated by hits and misses
-     */
-    public static void selectTableTests() throws FileNotFoundException, SQLException {
-        for (int n : nExperiments) {
-            selectTableTest(n);
         }
     }
 
@@ -409,40 +189,13 @@ public class CommandTests {
         }
     }
 
-    /**
-     * Tests performance while updating values in tables of various sizes
-     */
-    public static void updateTableTests() throws FileNotFoundException, SQLException {
-        for (int n : nExperiments) {
-            updateTableTest(n);
-        }
-    }
-
-    /**
-     * Tests performance while removing values in tables of various sizes
-     */
-    public static void deleteFromTableTests() throws FileNotFoundException, SQLException {
-        for (int n : nExperiments) {
-            deleteFromTableTest(n);
-        }
-    }
-
-    /**
-     * Tests performance in randomized tasks
-     */
-    public static void randomizedTests() throws FileNotFoundException, SQLException {
-        for (int n : nExperiments) {
-            randomizedTest(n);
-        }
-    }
-
     public static void main(String[] args) {
         try {
 //            createTableTests();
 //            joinTableTests();
 //            selectTableTests();
 //            largeJoinTableTests();
-            largeJoinTableTest(300);
+            joinTableTest(100);
             System.out.println("hits: " + BufferMgr.hits);
             System.out.println("misses: " + BufferMgr.misses);
         } catch (SQLException throwables) {
@@ -469,9 +222,7 @@ public class CommandTests {
     }
 
     private static final String[] courseNames = new String[]{"Computer Science", "Chemical Engineering",
-            "Mechanical Engineering", "Aerospace Engineering", "Computer Engineering", "Electrical Engineering",
-            "Environmental Engineering", "Biomedical Engineering", "Biology", "Physics", "Chemistry", "English",
-            "Psychology", "Economics", "Management", "Statistics", "French", "German", "Civil Engineering", "Art Design"};
+            "Mechanical Engineering", "Aerospace Engineering"};
 
     private static final String[] courseAbs = new String[]{"CS", "CHE", "ME", "ASE", "ECE", "EE", "EEE", "BME", "BIO",
             "PHY", "CHM", "ENG", "PSY", "ECON", "MGMT", "STAT", "FRE", "GER", "CE", "ART"};

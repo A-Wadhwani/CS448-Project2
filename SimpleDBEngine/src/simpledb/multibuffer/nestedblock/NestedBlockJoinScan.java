@@ -1,8 +1,9 @@
-package simpledb.multibuffer;
+package simpledb.multibuffer.nestedblock;
 
 import simpledb.query.*;
 import simpledb.record.Layout;
 import simpledb.record.TableScan;
+import simpledb.tx.BufferList;
 import simpledb.tx.Transaction;
 
 import java.sql.SQLOutput;
@@ -52,6 +53,7 @@ public class NestedBlockJoinScan implements Scan {
     * @see Scan#next()
     */
    public boolean next() {
+       System.out.println(BufferList.pins.toString());
        if (!rhsscan.next()){ // maybe a while loop
            if (!lhsscan.next()){
                return false;

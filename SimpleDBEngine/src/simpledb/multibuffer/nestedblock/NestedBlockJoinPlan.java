@@ -1,15 +1,13 @@
-package simpledb.multibuffer;
+package simpledb.multibuffer.nestedblock;
 
 import simpledb.materialize.MaterializePlan;
 import simpledb.materialize.TempTable;
 import simpledb.plan.Plan;
 import simpledb.plan.ProductPlan;
-import simpledb.plan.TablePlan;
 import simpledb.query.Predicate;
 import simpledb.query.Scan;
 import simpledb.query.UpdateScan;
 import simpledb.record.Schema;
-import simpledb.record.TableScan;
 import simpledb.tx.Transaction;
 
 /**
