@@ -61,16 +61,14 @@ public class NestedBlockJoinScan implements Scan {
                     rhsscan.beforeFirst(); // Restart reading from the beginning
                     rhsscan.next();
                 }
-               } else {
-                   lhsscan.restartBlock(); // Restart the left block, scan through everything in the right
+               } else { // Restart the left block, scan through everything in the right
+                   lhsscan.restartBlock();
                    lhsscan.next();
-                   // Maybe include a lhsscan.next() here?
                }
            } else { // Left block isn't done: keep going through left block records
                lhsscan.next();
                rhsscan.restartBlock();
                rhsscan.next();
-               // Maybe include a rhsscan.next() here?
            }
        } else {
          rhsscan.next(); // Keep checking right blocks with the left block

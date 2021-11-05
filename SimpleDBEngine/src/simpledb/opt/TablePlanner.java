@@ -1,6 +1,7 @@
 package simpledb.opt;
 
 import java.util.Map;
+import java.util.Scanner;
 
 import simpledb.multibuffer.nestedblock.NestedBlockJoinPlan;
 import simpledb.tx.Transaction;
@@ -61,17 +62,44 @@ class TablePlanner {
     * @param current the specified plan
     * @return a join plan of the plan and this table
     */
+
+   static final private boolean DEBUG_MODE = true;
+
    public Plan makeJoinPlan(Plan current) {
       Schema currsch = current.schema();
       Predicate joinpred = mypred.joinSubPred(myschema, currsch);
       if (joinpred == null)
          return null;
-      // Select Plan p based on cost estimation for IndexJoin, MergeJoin and BlockNestedJoin in blocks accessed
-      Plan p = makeIndexJoin(current, currsch);
-      if (p == null) {
-         p = makeNestedBlockJoin(current, currsch);
-         if (p == null)
-            p = makeProductJoin(current, currsch);
+      Plan p = null;
+      if (DEBUG_MODE) {
+         Scanner sc = new Scanner(System.in);
+         System.out.println("User is doing a join, which method should we try?");
+         System.out.println("   1. Index Join");
+         System.out.println("   2. Nested Block Join");
+         System.out.println("   3. Product Join");
+         int s = sc.nextInt();
+         switch (s){
+            case 1:
+               p = makeIndexJoin(current, currsch);
+               if (p == null){
+                  System.out.println("Index Join not possible, defaulting to Product Join");
+               } else {
+                  break;
+               }
+            case 2:
+               p = makeNestedBlockJoin(current, currsch);
+               break;
+            default:
+               p = makeProductJoin(current, currsch);
+         }
+      } else {
+         // Select Plan p based on cost estimation for IndexJoin, MergeJoin and BlockNestedJoin in blocks accessed
+         p = makeIndexJoin(current, currsch);
+         if (p == null) {
+            p = makeNestedBlockJoin(current, currsch);
+            if (p == null)
+               p = makeProductJoin(current, currsch);
+         }
       }
       return p;
    }
