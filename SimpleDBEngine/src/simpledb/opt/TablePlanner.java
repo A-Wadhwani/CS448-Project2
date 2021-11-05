@@ -1,10 +1,7 @@
 package simpledb.opt;
 
 import java.util.Map;
-import java.util.Scanner;
 
-import simpledb.buffer.Buffer;
-import simpledb.buffer.BufferMgr;
 import simpledb.multibuffer.nestedblock.NestedBlockJoinPlan;
 import simpledb.tx.Transaction;
 import simpledb.record.*;
@@ -67,6 +64,7 @@ public class TablePlanner {
 
    public static boolean DEBUG_MODE = false;
    public static int MODE = 0;
+   public static Plan DEBUG_PLAN = null;
 
    public Plan makeJoinPlan(Plan current) {
       Schema currsch = current.schema();
@@ -76,25 +74,32 @@ public class TablePlanner {
 
       if (!DEBUG_MODE) {
          // Select Plan p based on cost estimation for IndexJoin, MergeJoin and BlockNestedJoin in blocks accessed
-         Plan p = makeIndexJoin(current, currsch);
-         if (p == null) {
-            p = makeNestedBlockJoin(current, currsch);
-            if (p == null)
-               p = makeProductJoin(current, currsch);
+         Plan p = makeProductJoin(current, currsch);
+         Plan p1 = makeNestedBlockJoin(current, currsch);
+         if (p1.blocksAccessed() < p.blocksAccessed()){
+            p = p1;
+         }
+         Plan p2 = makeIndexJoin(current, currsch);
+         if (p2 != null && p2.blocksAccessed() < p.blocksAccessed()){
+            p = p2;
          }
          return p;
       } else {
          switch (MODE){
             case 1:
-               if (makeIndexJoin(current, currsch) == null) {
+               DEBUG_PLAN = makeIndexJoin(current, currsch);
+               if (DEBUG_PLAN == null) {
                   MODE = 3;
-                  return makeProductJoin(current, currsch);
+                  DEBUG_PLAN = makeProductJoin(current, currsch);
+                  return DEBUG_PLAN;
                }
-               return makeIndexJoin(current, currsch);
+               return DEBUG_PLAN;
             case 2:
-                return makeNestedBlockJoin(current, currsch);
+               DEBUG_PLAN = makeNestedBlockJoin(current, currsch);
+               return DEBUG_PLAN;
             default:
-                return makeProductJoin(current, currsch);
+               DEBUG_PLAN = makeProductJoin(current, currsch);
+               return DEBUG_PLAN;
          }
       }
    }

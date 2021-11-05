@@ -4,7 +4,6 @@ import simpledb.query.Constant;
 import simpledb.query.Predicate;
 import simpledb.query.Scan;
 import simpledb.record.TableScan;
-import simpledb.tx.BufferList;
 import simpledb.tx.Transaction;
 
 /**

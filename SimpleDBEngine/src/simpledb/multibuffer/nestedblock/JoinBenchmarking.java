@@ -4,10 +4,13 @@ import simpledb.buffer.BufferMgr;
 import simpledb.jdbc.embedded.EmbeddedDriver;
 import simpledb.opt.TablePlanner;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.sql.*;
 import java.util.*;
 
-public class CommandTests {
+public class JoinBenchmarking {
 
     public static void joinTableTest(int n) throws SQLException {
         EmbeddedDriver d = new EmbeddedDriver();
@@ -33,6 +36,10 @@ public class CommandTests {
         for (String studval : studvals) stmt.executeUpdate(s + studval);
         System.out.println("STUDENT records inserted.");
 
+        // Create an index on the student major id
+        s = "create index smid on STUDENT(MajorId)";
+        stmt.executeUpdate(s);
+
         s = "create table MAJOR(MId int, MajorName varchar(40), MajorAbbr varchar(5))";
         stmt.executeUpdate(s);
         System.out.println("Table MAJOR created.");
@@ -42,9 +49,13 @@ public class CommandTests {
         for (int i = 0; i < courseNames.length; i++) {
             majorvals[i] = String.format("(%d, '%s', '%s')", i, courseNames[i], courseAbs[i]);
         }
+
         for (String majorval : majorvals) stmt.executeUpdate(s + majorval);
         System.out.println("MAJOR records inserted.");
 
+        // Create an index on the major id
+        s = "create index mid on MAJOR(MId)";
+        stmt.executeUpdate(s);
 
         /* RUNNING JOIN QUERY */
         s = "select SId, SFirstName, SLastName, MId, MajorName, MajorAbbr " +
@@ -65,76 +76,6 @@ public class CommandTests {
 
     }
 
-    public static void largeJoinTableTest(int n) throws SQLException {
-        EmbeddedDriver d = new EmbeddedDriver();
-        String url = "jdbc:simpledb:studentdb" + UUID.randomUUID().toString().substring(9); //Makes new database each time
-        Connection conn = d.connect(url, null);
-        Statement stmt = conn.createStatement();
-
-        /* TABLE BUILDING */
-        String s = "create table STUDENT(SId int, SFirstName varchar(40), " +
-                "SLastName varchar(40), MajorId int, GradYear int)";
-        stmt.executeUpdate(s);
-        System.out.println("Table STUDENT created.");
-
-        ArrayList<Name> names = Name.generateNames(n);
-
-        s = "insert into STUDENT(SId, SFirstName, SLastName, MajorId, GradYear) values ";
-        String[] studvals = new String[n / 2];
-
-        for (int i = 0; i < n / 2; i++) {
-            studvals[i] = String.format("(%d, '%s', '%s', %d, %d)", (i + 1), names.get(i).firstName,
-                    names.get(i).lastName, rand.nextInt(courseNames.length), randomGradYear());
-        }
-        for (String studval : studvals) stmt.executeUpdate(s + studval);
-        System.out.println("STUDENT records inserted.");
-
-        s = "create table MAJOR(MId int, MajorName varchar(40), MajorAbbr varchar(5))";
-        stmt.executeUpdate(s);
-        System.out.println("Table MAJOR created.");
-
-        s = "insert into MAJOR(MId, MajorName, MajorAbbr) values ";
-        String[] majorvals = new String[courseNames.length];
-        for (int i = 0; i < courseNames.length; i++) {
-            majorvals[i] = String.format("(%d, '%s', '%s')", i, courseNames[i], courseAbs[i]);
-        }
-        for (String majorval : majorvals) stmt.executeUpdate(s + majorval);
-        System.out.println("MAJOR records inserted.");
-
-        s = "create table INSTRUCTOR(IId int, IFirstName varchar(40), " +
-                "ILastName varchar(40), DeptID int)";
-        stmt.executeUpdate(s);
-        System.out.println("Table INSTRUCTOR created.");
-
-        s = "insert into INSTRUCTOR(IId, IFirstName, ILastName, DeptID) values ";
-        String[] instrVals = new String[n / 2];
-
-        for (int i = n / 2; i < n; i++) {
-            instrVals[i - n / 2] = String.format("(%d, '%s', '%s', %d, %d)", (i + 1), names.get(i).firstName,
-                    names.get(i).lastName, rand.nextInt(courseNames.length), randomGradYear());
-        }
-        for (String instrVal : instrVals) stmt.executeUpdate(s + instrVal);
-        System.out.println("INSTRUCTOR records inserted.");
-
-        /* RUNNING JOIN QUERY */
-        s = "select SId, SFirstName, SLastName, MId, MajorName, MajorAbbr, IID, IFirstName, ILastName, DeptID " +
-                "from STUDENT, MAJOR, INSTRUCTOR " +
-                "where MId = MajorId and DeptID = MId";
-
-        ResultSet rs = stmt.executeQuery(s);
-
-        BufferMgr.hits = 0;
-        BufferMgr.misses = 0;
-
-        int count = 0;
-        while (rs.next()) {
-            count++;
-        } // Going through entire result set.
-
-        System.out.println("Number of records in join: " + count);
-        conn.close();
-    }
-
     private static String runTest(int n, int type) {
         TablePlanner.DEBUG_MODE = true;
         TablePlanner.MODE = type;
@@ -151,13 +92,17 @@ public class CommandTests {
                 test = "Multi Buffer Product and Select";
         }
         try {
+            String csvForm = "";
             joinTableTest(n);
             result += (test + " on input size: " + n + "\n");
+            result += (test + " guess for block accesses: " + TablePlanner.DEBUG_PLAN.blocksAccessed() + "\n");
             result += (test + " hits: " + BufferMgr.hits) + "\n";
-            result += (test + " misses: " + BufferMgr.misses) + "\n" + "\n";
+            result += (test + " misses (disk reads): " + BufferMgr.misses) + "\n" + "\n";
             if (TablePlanner.MODE != type){
                 return test + " mode was not possible.\n\n";
             }
+            csvForm += n + "," + test + "," + TablePlanner.DEBUG_PLAN.blocksAccessed() + ","+
+                    BufferMgr.hits + "," + BufferMgr.misses;
             return result;
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -166,7 +111,7 @@ public class CommandTests {
     }
 
     public static void main(String[] args) {
-        int[] sizes = new int[]{50, 100, 500, 1000};
+        int[] sizes = new int[]{100, 200, 300, 400, 500, 600, 700, 800, 900, 1000};
         StringBuilder s1 = new StringBuilder();
         for (int size : sizes) {
             for (int j = 1; j <= 3; j++) {
@@ -176,6 +121,25 @@ public class CommandTests {
         System.out.println("\n\n---FINAL RESULTS---");
         System.out.print(s1);
     }
+
+    private static void writeToFile(){
+        // Change the runTest method to return csv form for this to work
+        int[] sizes = new int[]{100, 200, 300, 400, 500, 600, 700, 800, 900, 1000};
+        PrintWriter pw;
+        try {
+            pw = new PrintWriter("results.csv");
+            pw.println("Input Size,Join Algorithm,Block Accesses,Hits,Misses");
+            for (int size : sizes) {
+                for (int j = 1; j <= 3; j++) {
+                    pw.println(runTest(size, j));
+                }
+            }
+            pw.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     static final Random rand = new Random(42); // For number generation
 

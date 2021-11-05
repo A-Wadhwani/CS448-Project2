@@ -83,21 +83,16 @@ public class NestedBlockJoinPlan implements Plan {
 
    /**
     * Returns an estimate of the number of block accesses
-    * required to execute the query. The formula is:
-    * <pre> B(product(p1,p2)) = B(p2) + B(p1)*C(p2) </pre>
-    * where C(p2) is the number of chunks of p2.
-    * The method uses the current number of available buffers
-    * to calculate C(p2), and so this value may differ
-    * when the query scan is opened.
-    * @see Plan#blocksAccessed()
+    * required to execute the query.
     */
    public int blocksAccessed() {
-      // this guesses at the # of chunks
-      int avail = tx.availableBuffs();
-      int size = new MaterializePlan(tx, rhs).blocksAccessed();
-      int numchunks = size / avail;
-      return rhs.blocksAccessed() +
-            (lhs.blocksAccessed() * numchunks);
+      // Materialize gives number of blocks in the full table
+      int lhsBlocks = lhs.blocksAccessed();
+      if (lhsBlocks == 0){
+         lhsBlocks = 1;
+      }
+      int rhsBlocks = new MaterializePlan(tx, rhs).blocksAccessed();
+      return (lhsBlocks * rhsBlocks) + lhsBlocks;
    }
 
    /**
@@ -107,7 +102,7 @@ public class NestedBlockJoinPlan implements Plan {
     * @see Plan#recordsOutput()
     */
    public int recordsOutput() {
-      return lhs.recordsOutput() * rhs.recordsOutput();
+      return (lhs.recordsOutput() * rhs.recordsOutput()) * pred.reductionFactor(this);
    }
 
    /**
