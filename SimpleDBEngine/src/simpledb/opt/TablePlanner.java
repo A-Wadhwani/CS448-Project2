@@ -18,13 +18,13 @@ import simpledb.plan.*;
  * This class contains methods for planning a single table.
  * @author Edward Sciore
  */
-class TablePlanner {
+public class TablePlanner {
    private TablePlan myplan;
    private Predicate mypred;
    private Schema myschema;
    private Map<String,IndexInfo> indexes;
    private Transaction tx;
-   
+
    /**
     * Creates a new table planner.
     * The specified predicate applies to the entire query.
@@ -42,7 +42,7 @@ class TablePlanner {
       myschema = myplan.schema();
       indexes  = mdm.getIndexInfo(tblname, tx);
    }
-   
+
    /**
     * Constructs a select plan for the table.
     * The plan will use an indexselect, if possible.
@@ -54,7 +54,7 @@ class TablePlanner {
          p = myplan;
       return addSelectPred(p);
    }
-   
+
    /**
     * Constructs a join plan of the specified plan
     * and the table.  The plan will use an indexjoin, if possible.
@@ -65,47 +65,38 @@ class TablePlanner {
     * @return a join plan of the plan and this table
     */
 
-   static final private boolean DEBUG_MODE = true;
+   public static boolean DEBUG_MODE = false;
+   public static int MODE = 0;
 
    public Plan makeJoinPlan(Plan current) {
       Schema currsch = current.schema();
       Predicate joinpred = mypred.joinSubPred(myschema, currsch);
       if (joinpred == null)
          return null;
-      Plan p = null;
-      if (DEBUG_MODE) {
-         Scanner sc = new Scanner(System.in);
-         System.out.println("User is doing a join, which method should we try?");
-         System.out.println("   1. Index Join");
-         System.out.println("   2. Nested Block Join");
-         System.out.println("   3. Product Join");
-         int s = sc.nextInt();
-         switch (s){
-            case 1:
-               p = makeIndexJoin(current, currsch);
-               if (p == null){
-                  System.out.println("Index Join not possible, defaulting to Product Join");
-               } else {
-                  break;
-               }
-            case 2:
-               p = makeNestedBlockJoin(current, currsch);
-               break;
-            default:
-               p = makeProductJoin(current, currsch);
-         }
-         BufferMgr.hits = 0;
-         BufferMgr.misses = 0;
-      } else {
+
+      if (!DEBUG_MODE) {
          // Select Plan p based on cost estimation for IndexJoin, MergeJoin and BlockNestedJoin in blocks accessed
-         p = makeIndexJoin(current, currsch);
+         Plan p = makeIndexJoin(current, currsch);
          if (p == null) {
             p = makeNestedBlockJoin(current, currsch);
             if (p == null)
                p = makeProductJoin(current, currsch);
          }
+         return p;
+      } else {
+         switch (MODE){
+            case 1:
+               if (makeIndexJoin(current, currsch) == null) {
+                  MODE = 3;
+                  return makeProductJoin(current, currsch);
+               }
+               return makeIndexJoin(current, currsch);
+            case 2:
+                return makeNestedBlockJoin(current, currsch);
+            default:
+                return makeProductJoin(current, currsch);
+         }
       }
-      return p;
    }
 
    /**
@@ -118,7 +109,7 @@ class TablePlanner {
       Plan p = addSelectPred(myplan);
       return new MultibufferProductPlan(tx, current, p);
    }
-   
+
    private Plan makeIndexSelect() {
       for (String fldname : indexes.keySet()) {
          Constant val = mypred.equatesWithConstant(fldname);
@@ -130,7 +121,7 @@ class TablePlanner {
       }
       return null;
    }
-   
+
    private Plan makeIndexJoin(Plan current, Schema currsch) {
       for (String fldname : indexes.keySet()) {
          String outerfield = mypred.equatesWithField(fldname);
@@ -153,7 +144,7 @@ class TablePlanner {
       Plan p = makeProductPlan(current);
       return addJoinPred(p, currsch);
    }
-   
+
    private Plan addSelectPred(Plan p) {
       Predicate selectpred = mypred.selectSubPred(myschema);
       if (selectpred != null)
@@ -161,7 +152,7 @@ class TablePlanner {
       else
          return p;
    }
-   
+
    private Plan addJoinPred(Plan p, Schema currsch) {
       Predicate joinpred = mypred.joinSubPred(currsch, myschema);
       if (joinpred != null)

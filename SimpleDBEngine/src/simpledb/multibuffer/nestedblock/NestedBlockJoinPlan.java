@@ -47,6 +47,7 @@ public class NestedBlockJoinPlan implements Plan {
       schema.addAll(rhs.schema());
    }
 
+   // Swap the plans so that the smaller one is on the LHS
    private static boolean swapToOptimize(Plan p1, Plan p2) {
       Plan prod1 = new ProductPlan(p1, p2);
       Plan prod2 = new ProductPlan(p2, p1);

@@ -1,10 +1,9 @@
-package simpledb.buffer;
+package simpledb.multibuffer.nestedblock;
 
+import simpledb.buffer.BufferMgr;
 import simpledb.jdbc.embedded.EmbeddedDriver;
-import simpledb.server.SimpleDB;
+import simpledb.opt.TablePlanner;
 
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.sql.*;
 import java.util.*;
 
@@ -16,6 +15,7 @@ public class CommandTests {
         Connection conn = d.connect(url, null);
         Statement stmt = conn.createStatement();
 
+        /* TABLE BUILDING */
         String s = "create table STUDENT(SId int, SFirstName varchar(40), " +
                 "SLastName varchar(40), MajorId int, GradYear int)";
         stmt.executeUpdate(s);
@@ -46,6 +46,7 @@ public class CommandTests {
         System.out.println("MAJOR records inserted.");
 
 
+        /* RUNNING JOIN QUERY */
         s = "select SId, SFirstName, SLastName, MId, MajorName, MajorAbbr " +
                 "from STUDENT, MAJOR " +
                 "where MId = MajorId";
@@ -70,6 +71,7 @@ public class CommandTests {
         Connection conn = d.connect(url, null);
         Statement stmt = conn.createStatement();
 
+        /* TABLE BUILDING */
         String s = "create table STUDENT(SId int, SFirstName varchar(40), " +
                 "SLastName varchar(40), MajorId int, GradYear int)";
         stmt.executeUpdate(s);
@@ -114,7 +116,7 @@ public class CommandTests {
         for (String instrVal : instrVals) stmt.executeUpdate(s + instrVal);
         System.out.println("INSTRUCTOR records inserted.");
 
-
+        /* RUNNING JOIN QUERY */
         s = "select SId, SFirstName, SLastName, MId, MajorName, MajorAbbr, IID, IFirstName, ILastName, DeptID " +
                 "from STUDENT, MAJOR, INSTRUCTOR " +
                 "where MId = MajorId and DeptID = MId";
@@ -131,62 +133,51 @@ public class CommandTests {
 
         System.out.println("Number of records in join: " + count);
         conn.close();
-
     }
 
-    /**
-     * Specifies size of experiment
-     */
-    final static int[] nExperiments = new int[]{20, 40, 60, 80, 100, 140, 180, 220, 260, 300, 350, 400, 450, 500, 550,
-            600, 650, 750, 800, 850, 900, 950, 1000};
-
-    /**
-     * Tests performance while joining Tables of various sizes, specified by nExperiments, with a constant size table.
-     * Performance of buffers is evaluated by hits and misses
-     */
-    public static void joinTableTests() throws FileNotFoundException, SQLException {
-        for (int n : nExperiments) {
-            joinTableTest(n);
+    private static String runTest(int n, int type) {
+        TablePlanner.DEBUG_MODE = true;
+        TablePlanner.MODE = type;
+        String test = "";
+        String result = "";
+        switch (type) {
+            case 1:
+                test = "Index Join";
+                break;
+            case 2:
+                test = "Block Nested Loop Join";
+                break;
+            case 3:
+                test = "Multi Buffer Product and Select";
         }
-    }
-
-    /**
-     * Tests performance while joining two tables of various sizes, specified by nExperiments, with a constant size table.
-     * Performance of buffers is evaluated by hits and misses
-     */
-    public static void largeJoinTableTests() throws FileNotFoundException, SQLException {
-        for (int n : nExperiments) {
-            largeJoinTableTest(n);
-        }
-    }
-
-    public static void main(String[] args) {
         try {
-//            createTableTests();
-//            joinTableTests();
-//            selectTableTests();
-//            largeJoinTableTests();
-            joinTableTest(100);
-            System.out.println("hits: " + BufferMgr.hits);
-            System.out.println("misses: " + BufferMgr.misses);
+            joinTableTest(n);
+            result += (test + " on input size: " + n + "\n");
+            result += (test + " hits: " + BufferMgr.hits) + "\n";
+            result += (test + " misses: " + BufferMgr.misses) + "\n" + "\n";
+            if (TablePlanner.MODE != type){
+                return test + " mode was not possible.\n\n";
+            }
+            return result;
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
+        return null;
+    }
+
+    public static void main(String[] args) {
+        int[] sizes = new int[]{50, 100, 500, 1000};
+        StringBuilder s1 = new StringBuilder();
+        for (int size : sizes) {
+            for (int j = 1; j <= 3; j++) {
+                s1.append(runTest(size, j));
+            }
+        }
+        System.out.println("\n\n---FINAL RESULTS---");
+        System.out.print(s1);
     }
 
     static final Random rand = new Random(42); // For number generation
-
-    private static String randomGrade() {
-        String grade = "ABCDF".charAt(rand.nextInt(5)) + "";
-        switch (rand.nextInt(3)) {
-            case 0:
-                grade += "-";
-                break;
-            case 1:
-                grade += "+";
-        }
-        return grade;
-    }
 
 
     private static int randomGradYear() {
@@ -196,13 +187,7 @@ public class CommandTests {
     private static final String[] courseNames = new String[]{"Computer Science", "Chemical Engineering",
             "Mechanical Engineering", "Aerospace Engineering"};
 
-    private static final String[] courseNames1 = new String[]{"Computer Science", "Chemical Engineering",
-            "Mechanical Engineering", "Aerospace Engineering", "Computer Engineering", "Electrical Engineering",
-            "Environmental Engineering", "Biomedical Engineering", "Biology", "Physics", "Chemistry", "English",
-            "Psychology", "Economics", "Management", "Statistics", "French", "German", "Civil Engineering", "Art Design"};
-
-    private static final String[] courseAbs = new String[]{"CS", "CHE", "ME", "ASE", "ECE", "EE", "EEE", "BME", "BIO",
-            "PHY", "CHM", "ENG", "PSY", "ECON", "MGMT", "STAT", "FRE", "GER", "CE", "ART"};
+    private static final String[] courseAbs = new String[]{"CS", "CHE", "ME", "ASE"};
 
     private static class Name {
         String firstName;
