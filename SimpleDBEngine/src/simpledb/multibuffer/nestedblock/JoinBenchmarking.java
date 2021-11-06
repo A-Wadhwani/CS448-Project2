@@ -127,9 +127,9 @@ public class JoinBenchmarking {
 
     public static void main(String[] args) throws SQLException {
 //        runTests();
-//        correctnessTest();
+        correctnessTest();
 //        writeToFile();
-        testSelection();
+ //       testSelection();
     }
 
     public static void testSelection() throws SQLException {

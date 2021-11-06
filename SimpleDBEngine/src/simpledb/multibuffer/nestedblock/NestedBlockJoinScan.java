@@ -4,6 +4,7 @@ import simpledb.query.Constant;
 import simpledb.query.Predicate;
 import simpledb.query.Scan;
 import simpledb.record.TableScan;
+import simpledb.tx.BufferList;
 import simpledb.tx.Transaction;
 
 /**
@@ -51,6 +52,9 @@ public class NestedBlockJoinScan implements Scan {
     * @see Scan#next()
     */
    public boolean next() {
+       System.out.println(BufferList.pins);
+       // Uncomment the above line to see the number of pins
+       // in the buffer pool and see the selected unpinned buffers
        if (rhsscan.atEndOfBlock()){ // Finished the right block
            if (lhsscan.atEndOfBlock()){ // Finished the left block too
                if (!rhsscan.next()){ // No more right blocks: We need to move to next left block

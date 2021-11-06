@@ -12,9 +12,8 @@ import simpledb.record.TableScan;
 import simpledb.tx.Transaction;
 
 /**
- * The Plan class for the multi-buffer version of the
- * <i>product</i> operator.
- * @author Edward Sciore
+ * The Plan class for the Nested Block Join .
+ * @author Aryan Wadhwani
  */
 public class NestedBlockJoinPlan implements Plan {
    private Transaction tx;
@@ -24,10 +23,11 @@ public class NestedBlockJoinPlan implements Plan {
    private boolean isSwapped = false;
 
    /**
-    * Creates a product plan for the specified queries.
+    * Creates a join plan for the specified queries.
     * @param lhs the plan for the LHS query
     * @param rhs the plan for the RHS query
     * @param tx the calling transaction
+    * @param pred the predicate to apply to the join
     */
    public NestedBlockJoinPlan(Transaction tx, Plan lhs, Plan rhs, Predicate pred) {
       this.tx = tx;
