@@ -52,7 +52,7 @@ public class NestedBlockJoinScan implements Scan {
     * @see Scan#next()
     */
    public boolean next() {
-       System.out.println(BufferList.pins);
+//       System.out.println(BufferList.pins);
        // Uncomment the above line to see the number of pins
        // in the buffer pool and see the selected unpinned buffers
        if (rhsscan.atEndOfBlock()){ // Finished the right block
