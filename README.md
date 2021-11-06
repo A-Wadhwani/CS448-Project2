@@ -9,5 +9,3 @@ Running any of these components is simply done by calling the corresponding func
 Using the provided directions to run queries would still work but using JoinBenchmarking.java allows detailed tests for large sized queries.
 
 To enable selection of join plans during testing for Performance Comparison, a debug mode flag was added to table planner, among other changes, to ensure that a specific plan could be selected and run. This flag is off by default though, so there should be no issue running the usual queries.
-
-For m
