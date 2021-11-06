@@ -12,7 +12,9 @@ import java.util.*;
 
 public class JoinBenchmarking {
 
-    public static void joinTableTest(int n) throws SQLException {
+    static ResultSet rs;
+
+    public static long joinTableTest(int n) throws SQLException {
         EmbeddedDriver d = new EmbeddedDriver();
         String url = "jdbc:simpledb:studentdb" + UUID.randomUUID().toString().substring(9); //Makes new database each time
         Connection conn = d.connect(url, null);
@@ -65,7 +67,8 @@ public class JoinBenchmarking {
 
         BufferMgr.hits = 0;
         BufferMgr.misses = 0;
-        ResultSet rs = stmt.executeQuery(s);
+        rs = stmt.executeQuery(s);
+        long time = System.currentTimeMillis();
         int count = 0;
         while (rs.next()) {
             count++;
@@ -73,7 +76,7 @@ public class JoinBenchmarking {
 
         System.out.println("Number of records in join: " + count);
         conn.close();
-
+        return System.currentTimeMillis() - time;
     }
 
     private static String runTest(int n, int type) {
@@ -93,15 +96,16 @@ public class JoinBenchmarking {
         }
         try {
             String csvForm = "";
-            joinTableTest(n);
+            long time = joinTableTest(n);
             result += (test + " on input size: " + n + "\n");
+            System.out.println(test + " time taken: " + time);
             result += (test + " guess for block accesses: " + TablePlanner.DEBUG_PLAN.blocksAccessed() + "\n");
             result += (test + " hits: " + BufferMgr.hits) + "\n";
             result += (test + " misses (disk reads): " + BufferMgr.misses) + "\n" + "\n";
-            if (TablePlanner.MODE != type){
+            if (TablePlanner.MODE != type) {
                 return test + " mode was not possible.\n\n";
             }
-            csvForm += n + "," + test + "," + TablePlanner.DEBUG_PLAN.blocksAccessed() + ","+
+            csvForm += n + "," + test + "," + time + "," + TablePlanner.DEBUG_PLAN.blocksAccessed() + "," +
                     BufferMgr.hits + "," + BufferMgr.misses;
             return result;
         } catch (SQLException throwables) {
@@ -110,7 +114,39 @@ public class JoinBenchmarking {
         return null;
     }
 
-    public static void main(String[] args) {
+    public static void correctnessTest() throws SQLException {
+        runTest(100, 1); // Index Join
+        ResultSet test1 = rs;
+        runTest(100, 2); // Block Nested Loop Join
+        ResultSet test2 = rs;
+        runTest(100, 3); // Multi Buffer Product and Select
+        ResultSet test3 = rs;
+        // Check if all the results are the same
+        HashMap<String, Integer> matches = new HashMap<>();
+        int count = 0;
+        ResultSet[] tests = {test1, test2, test3};
+        for (ResultSet test: tests){
+            while (test.next()) {
+                String result = test.getInt("SId") + test.getString("SFirstName") +
+                        test.getString("SLastName") + test.getInt("MId") +
+                        test.getString("MajorName") + test.getString("MajorAbbr");
+                matches.put(result, matches.getOrDefault(result, 0) + 1);
+                if (matches.get(result) != count) {
+                    System.out.println("Failed test. There is an unaccounted tuple");
+                }
+            }
+            count++;
+        }
+        System.out.println("All tests passed.");
+    }
+
+    public static void main(String[] args) throws SQLException {
+        runTests();
+        correctnessTest();
+        // writeToFile();
+    }
+
+    private static void runTests() {
         int[] sizes = new int[]{100, 200, 300, 400, 500, 600, 700, 800, 900, 1000};
         StringBuilder s1 = new StringBuilder();
         for (int size : sizes) {
@@ -122,13 +158,13 @@ public class JoinBenchmarking {
         System.out.print(s1);
     }
 
-    private static void writeToFile(){
+    private static void writeToFile() {
         // Change the runTest method to return csv form for this to work
         int[] sizes = new int[]{100, 200, 300, 400, 500, 600, 700, 800, 900, 1000};
         PrintWriter pw;
         try {
             pw = new PrintWriter("results.csv");
-            pw.println("Input Size,Join Algorithm,Block Accesses,Hits,Misses");
+            pw.println("Input Size,Join Algorithm,Runtime,Block Guess,Hits,Misses");
             for (int size : sizes) {
                 for (int j = 1; j <= 3; j++) {
                     pw.println(runTest(size, j));
