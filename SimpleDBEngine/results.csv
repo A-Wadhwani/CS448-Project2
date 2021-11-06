@@ -1,31 +1,31 @@
 Input Size,Join Algorithm,Runtime,Block Guess,Hits,Misses
-100,Index Join,6,0,2,23
-100,Block Nested Loop Join,4,35,139,53
-100,Multi Buffer Product and Select,5,34,16,121
-200,Index Join,10,3,2,23
-200,Block Nested Loop Join,7,68,271,86
-200,Multi Buffer Product and Select,4,75,30,220
-300,Index Join,6,5,2,23
-300,Block Nested Loop Join,7,101,403,119
-300,Multi Buffer Product and Select,2,112,42,319
-400,Index Join,8,7,2,23
-400,Block Nested Loop Join,6,135,539,153
-400,Multi Buffer Product and Select,4,150,56,421
-500,Index Join,6,9,9,219
-500,Block Nested Loop Join,7,334,510,382
-500,Multi Buffer Product and Select,4,187,77,716
-600,Index Join,9,9,13,248
-600,Block Nested Loop Join,10,336,614,444
-600,Multi Buffer Product and Select,6,189,93,844
-700,Index Join,6,9,9,286
-700,Block Nested Loop Join,12,404,710,516
-700,Multi Buffer Product and Select,12,227,103,984
-800,Index Join,6,0,12,316
-800,Block Nested Loop Join,11,237,1081,579
-800,Multi Buffer Product and Select,6,236,120,1113
-900,Index Join,5,0,3,22
-900,Block Nested Loop Join,13,270,1204,318
-900,Multi Buffer Product and Select,7,269,123,918
+100,Index Join,18,0,2,23
+100,Block Nested Loop Join,15,35,139,53
+100,Multi Buffer Product and Select,69,34,16,121
+200,Index Join,11,3,2,23
+200,Block Nested Loop Join,15,68,271,86
+200,Multi Buffer Product and Select,89,75,30,220
+300,Index Join,10,5,2,23
+300,Block Nested Loop Join,8,101,403,119
+300,Multi Buffer Product and Select,247,112,42,319
+400,Index Join,10,7,2,23
+400,Block Nested Loop Join,15,135,539,153
+400,Multi Buffer Product and Select,215,150,56,421
+500,Index Join,11,9,9,219
+500,Block Nested Loop Join,20,334,510,382
+500,Multi Buffer Product and Select,239,187,77,716
+600,Index Join,15,9,13,248
+600,Block Nested Loop Join,17,336,614,444
+600,Multi Buffer Product and Select,318,189,93,844
+700,Index Join,15,9,9,286
+700,Block Nested Loop Join,18,404,710,516
+700,Multi Buffer Product and Select,332,227,103,984
+800,Index Join,14,0,12,316
+800,Block Nested Loop Join,15,237,1081,579
+800,Multi Buffer Product and Select,380,236,120,1113
+900,Index Join,13,0,3,22
+900,Block Nested Loop Join,24,270,1204,318
+900,Multi Buffer Product and Select,419,269,123,918
 1000,Index Join,7,0,3,22
-1000,Block Nested Loop Join,15,304,1340,352
-1000,Multi Buffer Product and Select,7,303,137,1020
+1000,Block Nested Loop Join,23,304,1340,352
+1000,Multi Buffer Product and Select,466,303,137,1020

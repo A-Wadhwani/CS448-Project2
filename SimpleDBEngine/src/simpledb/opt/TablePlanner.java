@@ -75,13 +75,16 @@ public class TablePlanner {
       if (!DEBUG_MODE) {
          // Select Plan p based on cost estimation for IndexJoin, MergeJoin and BlockNestedJoin in blocks accessed
          Plan p = makeProductJoin(current, currsch);
+         TablePlanner.MODE = 1;
          Plan p1 = makeNestedBlockJoin(current, currsch);
          if (p1.blocksAccessed() < p.blocksAccessed()){
             p = p1;
+            TablePlanner.MODE = 2;
          }
          Plan p2 = makeIndexJoin(current, currsch);
          if (p2 != null && p2.blocksAccessed() < p.blocksAccessed()){
             p = p2;
+            TablePlanner.MODE = 3;
          }
          return p;
       } else {

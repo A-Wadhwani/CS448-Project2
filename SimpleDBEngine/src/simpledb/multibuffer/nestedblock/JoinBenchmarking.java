@@ -12,7 +12,10 @@ import java.util.*;
 
 public class JoinBenchmarking {
 
+    static boolean disableIndexing = false;
     static ResultSet rs;
+    static HashMap<String, Integer> matches = new HashMap<>();
+    static ArrayList<String> searchkeys = new ArrayList<>();
 
     public static long joinTableTest(int n) throws SQLException {
         EmbeddedDriver d = new EmbeddedDriver();
@@ -38,9 +41,11 @@ public class JoinBenchmarking {
         for (String studval : studvals) stmt.executeUpdate(s + studval);
         System.out.println("STUDENT records inserted.");
 
-        // Create an index on the student major id
-        s = "create index smid on STUDENT(MajorId)";
-        stmt.executeUpdate(s);
+        if (!disableIndexing) {
+            // Create an index on the student major id
+            s = "create index smid on STUDENT(MajorId)";
+            stmt.executeUpdate(s);
+        }
 
         s = "create table MAJOR(MId int, MajorName varchar(40), MajorAbbr varchar(5))";
         stmt.executeUpdate(s);
@@ -55,23 +60,29 @@ public class JoinBenchmarking {
         for (String majorval : majorvals) stmt.executeUpdate(s + majorval);
         System.out.println("MAJOR records inserted.");
 
-        // Create an index on the major id
-        s = "create index mid on MAJOR(MId)";
-        stmt.executeUpdate(s);
+        if (!disableIndexing) {
+            // Create an index on the major id
+            s = "create index mid on MAJOR(MId)";
+            stmt.executeUpdate(s);
+        }
 
         /* RUNNING JOIN QUERY */
         s = "select SId, SFirstName, SLastName, MId, MajorName, MajorAbbr " +
                 "from STUDENT, MAJOR " +
                 "where MId = MajorId";
 
-
         BufferMgr.hits = 0;
         BufferMgr.misses = 0;
-        rs = stmt.executeQuery(s);
         long time = System.currentTimeMillis();
+        rs = stmt.executeQuery(s);
         int count = 0;
         while (rs.next()) {
             count++;
+            String result = rs.getInt("SId") + rs.getString("SFirstName") +
+                    rs.getString("SLastName") + rs.getInt("MId") +
+                    rs.getString("MajorName") + rs.getString("MajorAbbr");
+            matches.put(result, matches.getOrDefault(result, 0) + 1);
+            searchkeys.add(result);
         } // Going through entire result set.
 
         System.out.println("Number of records in join: " + count);
@@ -107,43 +118,51 @@ public class JoinBenchmarking {
             }
             csvForm += n + "," + test + "," + time + "," + TablePlanner.DEBUG_PLAN.blocksAccessed() + "," +
                     BufferMgr.hits + "," + BufferMgr.misses;
-            return result;
+            return csvForm;
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
         return null;
     }
 
-    public static void correctnessTest() throws SQLException {
-        runTest(100, 1); // Index Join
-        ResultSet test1 = rs;
-        runTest(100, 2); // Block Nested Loop Join
-        ResultSet test2 = rs;
-        runTest(100, 3); // Multi Buffer Product and Select
-        ResultSet test3 = rs;
-        // Check if all the results are the same
-        HashMap<String, Integer> matches = new HashMap<>();
-        int count = 0;
-        ResultSet[] tests = {test1, test2, test3};
-        for (ResultSet test: tests){
-            while (test.next()) {
-                String result = test.getInt("SId") + test.getString("SFirstName") +
-                        test.getString("SLastName") + test.getInt("MId") +
-                        test.getString("MajorName") + test.getString("MajorAbbr");
-                matches.put(result, matches.getOrDefault(result, 0) + 1);
-                if (matches.get(result) != count) {
-                    System.out.println("Failed test. There is an unaccounted tuple");
-                }
-            }
-            count++;
-        }
-        System.out.println("All tests passed.");
+    public static void main(String[] args) throws SQLException {
+//        runTests();
+//        correctnessTest();
+//        writeToFile();
+        testSelection();
     }
 
-    public static void main(String[] args) throws SQLException {
-        runTests();
-        correctnessTest();
-        // writeToFile();
+    public static void testSelection() throws SQLException {
+        TablePlanner.DEBUG_MODE = false;
+        disableIndexing = true;
+        try {
+            String csvForm = "";
+            long time = joinTableTest(200);
+            if (TablePlanner.MODE == 2) {
+                System.out.println("TablePlanner picked Block Nested Join over Cross Product");
+            } else {
+                System.out.println("TablePlanner failed to pick Block Nested Join over Cross Product");
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    public static void correctnessTest() throws SQLException {
+        matches = new HashMap<>();
+        searchkeys = new ArrayList<>();
+
+        runTest(100, 2); // Block Nested Loop Join
+        runTest(100, 3); // Multi Buffer Product and Select
+
+        int count = 2; // All the three joins should have the same results => Same tuples
+        for (String key : searchkeys) {
+             if (matches.get(key) != count) { // Check if all the results are the same
+                 System.out.println("Incorrect results for " + key);
+                 return;
+             }
+        }
+        System.out.println("All tests passed.");
     }
 
     private static void runTests() {
@@ -177,7 +196,7 @@ public class JoinBenchmarking {
     }
 
 
-    static final Random rand = new Random(42); // For number generation
+    static Random rand = new Random(42); // For number generation
 
 
     private static int randomGradYear() {
@@ -207,6 +226,7 @@ public class JoinBenchmarking {
         }
 
         public static ArrayList<Name> generateNames(int n) {
+            rand = new Random(42); // Fix the seed
             ArrayList<Name> names = new ArrayList<>();
             int c1 = 0;
             int c2 = 0;
