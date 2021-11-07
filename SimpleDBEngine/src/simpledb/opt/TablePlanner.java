@@ -65,8 +65,8 @@ public class TablePlanner {
     * @return a join plan of the plan and this table
     */
 
-   public static boolean DEBUG_MODE = true;
-   public static int MODE = 2;
+   public static boolean DEBUG_MODE = false;
+   public static int MODE = 0;
    public static Plan DEBUG_PLAN = null;
 
    public Plan makeJoinPlan(Plan current) {

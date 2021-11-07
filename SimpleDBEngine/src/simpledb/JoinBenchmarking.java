@@ -1,4 +1,4 @@
-package simpledb.multibuffer.nestedblock;
+package simpledb;
 
 import simpledb.buffer.BufferMgr;
 import simpledb.jdbc.embedded.EmbeddedDriver;
@@ -13,6 +13,8 @@ import java.util.*;
 public class JoinBenchmarking {
 
     static boolean disableIndexing = false;
+    static boolean lessThan = false;
+    static int recordsCount = 0;
     static ResultSet rs;
     static HashMap<String, Integer> matches = new HashMap<>();
     static ArrayList<String> searchkeys = new ArrayList<>();
@@ -67,10 +69,15 @@ public class JoinBenchmarking {
         }
 
         /* RUNNING JOIN QUERY */
-        s = "select SId, SFirstName, SLastName, MId, MajorName, MajorAbbr " +
-                "from STUDENT, MAJOR " +
-                "where MId = MajorId";
-
+        if (lessThan) {
+            s = "select SId, SFirstName, SLastName, MId, MajorName, MajorAbbr " +
+                    "from STUDENT, MAJOR " +
+                    "where MId < MajorId";
+        } else {
+            s = "select SId, SFirstName, SLastName, MId, MajorName, MajorAbbr " +
+                    "from STUDENT, MAJOR " +
+                    "where MId = MajorId";
+        }
         BufferMgr.hits = 0;
         BufferMgr.misses = 0;
         long time = System.currentTimeMillis();
@@ -84,6 +91,7 @@ public class JoinBenchmarking {
             matches.put(result, matches.getOrDefault(result, 0) + 1);
             searchkeys.add(result);
         } // Going through entire result set.
+        recordsCount = count;
 
         System.out.println("Number of records in join: " + count);
         conn.close();
@@ -104,20 +112,26 @@ public class JoinBenchmarking {
                 break;
             case 3:
                 test = "Multi Buffer Product and Select";
+                break;
+            case 4:
+                test = "Merge Join";
+                break;
         }
         try {
             String csvForm = "";
             long time = joinTableTest(n);
             result += (test + " on input size: " + n + "\n");
-            System.out.println(test + " time taken: " + time);
+            result += (test + " time taken: " + time) + "\n";
             result += (test + " guess for block accesses: " + TablePlanner.DEBUG_PLAN.blocksAccessed() + "\n");
+            result += (test + " records: " + recordsCount) + "\n";
             result += (test + " hits: " + BufferMgr.hits) + "\n";
             result += (test + " misses (disk reads): " + BufferMgr.misses) + "\n" + "\n";
             if (TablePlanner.MODE != type) {
-                return test + " mode was not possible.\n\n";
+                return null;
+//                return test + " mode was not possible.\n\n";
             }
             csvForm += n + "," + test + "," + time + "," + TablePlanner.DEBUG_PLAN.blocksAccessed() + "," +
-                    BufferMgr.hits + "," + BufferMgr.misses;
+                    recordsCount + "," + BufferMgr.hits + "," + BufferMgr.misses;
             return csvForm;
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -131,7 +145,7 @@ public class JoinBenchmarking {
 //        runTest(300, 3); // Multi Buffer Product and Select
 //        runTests();
 //        correctnessTest();
-//        writeToFile();
+        writeToFile();
 //        testSelection();
     }
 
@@ -139,8 +153,7 @@ public class JoinBenchmarking {
         TablePlanner.DEBUG_MODE = false;
         disableIndexing = true;
         try {
-            String csvForm = "";
-            long time = joinTableTest(200);
+            joinTableTest(200);
             if (TablePlanner.MODE == 2) {
                 System.out.println("TablePlanner picked Block Nested Join over Cross Product");
             } else {
@@ -155,10 +168,11 @@ public class JoinBenchmarking {
         matches = new HashMap<>();
         searchkeys = new ArrayList<>();
 
-        runTest(100, 2); // Block Nested Loop Join
-        runTest(100, 3); // Multi Buffer Product and Select
+        runTest(200, 2); // Block Nested Loop Join
+        runTest(200, 3); // Multi Buffer Product and Select
+        runTest(200, 4); // Merge Join
 
-        int count = 2; // All the three joins should have the same results => Same tuples
+        int count = 3; // All the three joins should have the same results => Same tuples
         for (String key : searchkeys) {
              if (matches.get(key) != count) { // Check if all the results are the same
                  System.out.println("Incorrect results for " + key);
@@ -169,10 +183,10 @@ public class JoinBenchmarking {
     }
 
     private static void runTests() {
-        int[] sizes = new int[]{100, 200, 300, 400, 500, 600, 700, 800, 900, 1000};
+        int[] sizes = new int[]{200, 400, 600, 800, 1000};
         StringBuilder s1 = new StringBuilder();
         for (int size : sizes) {
-            for (int j = 1; j <= 3; j++) {
+            for (int j = 1; j <= 4; j++) {
                 s1.append(runTest(size, j));
             }
         }
@@ -182,17 +196,31 @@ public class JoinBenchmarking {
 
     private static void writeToFile() {
         // Change the runTest method to return csv form for this to work
-        int[] sizes = new int[]{100, 200, 300, 400, 500, 600, 700, 800, 900, 1000};
+        int[] sizes = new int[]{200, 600, 1000, 1400, 2000};
         PrintWriter pw;
         try {
-            pw = new PrintWriter("results.csv");
-            pw.println("Input Size,Join Algorithm,Runtime,Block Guess,Hits,Misses");
+            pw = new PrintWriter("resultsEquals.csv");
+            pw.println("Input Size,Join Algorithm,Runtime,Block Guess,Records Count,Hits,Misses");
             for (int size : sizes) {
-                for (int j = 1; j <= 3; j++) {
-                    pw.println(runTest(size, j));
+                for (int j = 1; j <= 4; j++) {
+                    String s1 = runTest(size, j);
+                    if (s1 != null)
+                        pw.println(s1);
                 }
             }
             pw.close();
+            lessThan = true;
+            pw = new PrintWriter("resultsLessThan.csv");
+            pw.println("Input Size,Join Algorithm,Runtime,Block Guess,Records Count,Hits,Misses");
+            for (int size : sizes) {
+                for (int j = 1; j <= 4; j++) {
+                    String s1 = runTest(size, j);
+                    if (s1 != null)
+                        pw.println(s1);
+                }
+            }
+            pw.close();
+            lessThan = false;
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }

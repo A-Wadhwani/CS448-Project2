@@ -1,0 +1,11 @@
+Input Size,Join Algorithm,Runtime,Block Guess,Records Count,Hits,Misses
+200,Block Nested Loop Join,4,68,298,271,86
+200,Multi Buffer Product and Select,175,75,298,30,220
+600,Block Nested Loop Join,27,336,898,614,444
+600,Multi Buffer Product and Select,733,189,898,93,844
+1000,Block Nested Loop Join,33,304,1480,1340,352
+1000,Multi Buffer Product and Select,972,303,1480,137,1020
+1400,Block Nested Loop Join,38,439,2127,1872,485
+1400,Multi Buffer Product and Select,1288,438,2127,191,1419
+2000,Block Nested Loop Join,19,641,3098,2672,685
+2000,Multi Buffer Product and Select,2398,640,3098,271,2019
