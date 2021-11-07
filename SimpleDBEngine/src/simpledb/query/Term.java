@@ -10,7 +10,7 @@ import simpledb.record.*;
  */
 public class Term {
    private Expression lhs, rhs;
-   
+   private boolean eq;
    /**
     * Create a new term that compares two expressions
     * for equality.
@@ -20,8 +20,14 @@ public class Term {
    public Term(Expression lhs, Expression rhs) {
       this.lhs = lhs;
       this.rhs = rhs;
+      this.eq = true;
    }
-   
+   public Term(Expression lhs, Expression rhs, boolean equal) {
+      //  System.out.println("invoked new con");
+      this.lhs = lhs;
+      this.rhs = rhs;
+      this.eq = equal;
+   }
    /**
     * Return true if both of the term's expressions
     * evaluate to the same constant,
@@ -32,11 +38,24 @@ public class Term {
    public boolean isSatisfied(Scan s) {
       Constant lhsval = lhs.evaluate(s);
       Constant rhsval = rhs.evaluate(s);
-      return rhsval.equals(lhsval);
+      //System.out.println("lhs : "+lhsval);
+      //System.out.println("rhs : " +rhsval);
+      if (eq == true) {
+         return rhsval.equals(lhsval);
+      }
+      else {
+         //System.out.println("in here");
+         if (lhsval.compareTo(rhsval) < 0) {
+            return true;
+         }
+         else {
+            return false;
+         }
+      }
    }
-   
+
    /**
-    * Calculate the extent to which selecting on the term reduces 
+    * Calculate the extent to which selecting on the term reduces
     * the number of records output by a query.
     * For example if the reduction factor is 2, then the
     * term cuts the size of the output in half.
@@ -49,7 +68,7 @@ public class Term {
          lhsName = lhs.asFieldName();
          rhsName = rhs.asFieldName();
          return Math.max(p.distinctValues(lhsName),
-                         p.distinctValues(rhsName));
+                 p.distinctValues(rhsName));
       }
       if (lhs.isFieldName()) {
          lhsName = lhs.asFieldName();
@@ -65,7 +84,7 @@ public class Term {
       else
          return Integer.MAX_VALUE;
    }
-   
+
    /**
     * Determine if this term is of the form "F=c"
     * where F is the specified field and c is some constant.
@@ -75,18 +94,22 @@ public class Term {
     * @return either the constant or null
     */
    public Constant equatesWithConstant(String fldname) {
+      if (eq == false) {
+         System.out.println("sending null");
+         return null;
+      }
       if (lhs.isFieldName() &&
-          lhs.asFieldName().equals(fldname) &&
-          !rhs.isFieldName())
+              lhs.asFieldName().equals(fldname) &&
+              !rhs.isFieldName())
          return rhs.asConstant();
       else if (rhs.isFieldName() &&
-               rhs.asFieldName().equals(fldname) &&
-               !lhs.isFieldName())
+              rhs.asFieldName().equals(fldname) &&
+              !lhs.isFieldName())
          return lhs.asConstant();
       else
          return null;
    }
-   
+
    /**
     * Determine if this term is of the form "F1=F2"
     * where F1 is the specified field and F2 is another field.
@@ -96,18 +119,22 @@ public class Term {
     * @return either the name of the other field, or null
     */
    public String equatesWithField(String fldname) {
+      if (!eq) {
+         System.out.println("sending null");
+         return null;
+      }
       if (lhs.isFieldName() &&
-          lhs.asFieldName().equals(fldname) &&
-          rhs.isFieldName())
+              lhs.asFieldName().equals(fldname) &&
+              rhs.isFieldName())
          return rhs.asFieldName();
       else if (rhs.isFieldName() &&
-               rhs.asFieldName().equals(fldname) &&
-               lhs.isFieldName())
+              rhs.asFieldName().equals(fldname) &&
+              lhs.isFieldName())
          return lhs.asFieldName();
       else
          return null;
    }
-   
+
    /**
     * Return true if both of the term's expressions
     * apply to the specified schema.
@@ -117,7 +144,7 @@ public class Term {
    public boolean appliesTo(Schema sch) {
       return lhs.appliesTo(sch) && rhs.appliesTo(sch);
    }
-   
+
    public String toString() {
       return lhs.toString() + "=" + rhs.toString();
    }

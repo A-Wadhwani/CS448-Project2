@@ -35,14 +35,27 @@ public class Parser {
       else
          return new Expression(constant());
    }
-   
+
    public Term term() {
+      // System.out.println("Here");
       Expression lhs = expression();
-      lex.eatDelim('=');
+      boolean eq = false;
+      try {
+         lex.eatDelim('=');
+         eq = true;
+      } catch (Exception e) {
+         lex.eatDelim('<');
+         //System.out.println("less than");
+      }
       Expression rhs = expression();
-      return new Term(lhs, rhs);
+      if (eq) {
+         return new Term(lhs, rhs, true);
+      }
+      else {
+         return new Term(lhs, rhs, false);
+      }
    }
-   
+
    public Predicate predicate() {
       Predicate pred = new Predicate(term());
       if (lex.matchKeyword("and")) {

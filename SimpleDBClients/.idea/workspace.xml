@@ -28,6 +28,7 @@
       <change beforePath="$PROJECT_DIR$/src/studentdb/temp4.tbl" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/studentdb/viewcat.tbl" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../SimpleDBEngine/src/simpledb/multibuffer/nestedblock/JoinBenchmarking.java" beforeDir="false" afterPath="$PROJECT_DIR$/../SimpleDBEngine/src/simpledb/multibuffer/nestedblock/JoinBenchmarking.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../SimpleDBEngine/src/simpledb/opt/TablePlanner.java" beforeDir="false" afterPath="$PROJECT_DIR$/../SimpleDBEngine/src/simpledb/opt/TablePlanner.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../SimpleDBEngine/src/simpledb/parse/Parser.java" beforeDir="false" afterPath="$PROJECT_DIR$/../SimpleDBEngine/src/simpledb/parse/Parser.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../SimpleDBEngine/src/simpledb/plan/Planner.java" beforeDir="false" afterPath="$PROJECT_DIR$/../SimpleDBEngine/src/simpledb/plan/Planner.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../SimpleDBEngine/src/simpledb/query/Term.java" beforeDir="false" afterPath="$PROJECT_DIR$/../SimpleDBEngine/src/simpledb/query/Term.java" afterDir="false" />
@@ -77,11 +78,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/../SimpleDBEngine/src/simpledb/multibuffer/nestedblock/JoinBenchmarking.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="15">
-              <caret line="71" column="28" selection-start-line="71" selection-start-column="28" selection-end-line="71" selection-end-column="28" />
+            <state relative-caret-position="150">
+              <caret line="89" column="37" lean-forward="true" selection-start-line="89" selection-start-column="37" selection-end-line="89" selection-end-column="37" />
             </state>
           </provider>
         </entry>
@@ -104,11 +105,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/../SimpleDBEngine/src/simpledb/opt/TablePlanner.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="300">
-              <caret line="134" column="41" selection-start-line="134" selection-start-column="36" selection-end-line="134" selection-end-column="52" />
+            <state relative-caret-position="-120">
+              <caret line="20" column="21" selection-start-line="20" selection-start-column="21" selection-end-line="20" selection-end-column="21" />
             </state>
           </provider>
         </entry>
@@ -174,9 +175,9 @@
       <list>
         <option value="$PROJECT_DIR$/../SimpleDBEngine/src/simpledb/parse/Parser.java" />
         <option value="$PROJECT_DIR$/../SimpleDBEngine/src/simpledb/plan/Planner.java" />
-        <option value="$PROJECT_DIR$/../SimpleDBEngine/src/simpledb/opt/TablePlanner.java" />
         <option value="$PROJECT_DIR$/../SimpleDBEngine/src/simpledb/query/Term.java" />
         <option value="$PROJECT_DIR$/../SimpleDBEngine/src/simpledb/multibuffer/nestedblock/JoinBenchmarking.java" />
+        <option value="$PROJECT_DIR$/../SimpleDBEngine/src/simpledb/opt/TablePlanner.java" />
       </list>
     </option>
   </component>
@@ -240,6 +241,55 @@
               <item name="SimpleDBEngine" type="462c0819:PsiDirectoryNode" />
               <item name="src" type="462c0819:PsiDirectoryNode" />
               <item name="simpledb" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="SimpleDBClients" type="b2602c69:ProjectViewProjectNode" />
+              <item name="SimpleDBEngine" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="simpledb" type="462c0819:PsiDirectoryNode" />
+              <item name="buffer" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="SimpleDBClients" type="b2602c69:ProjectViewProjectNode" />
+              <item name="SimpleDBEngine" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="simpledb" type="462c0819:PsiDirectoryNode" />
+              <item name="file" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="SimpleDBClients" type="b2602c69:ProjectViewProjectNode" />
+              <item name="SimpleDBEngine" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="simpledb" type="462c0819:PsiDirectoryNode" />
+              <item name="index" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="SimpleDBClients" type="b2602c69:ProjectViewProjectNode" />
+              <item name="SimpleDBEngine" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="simpledb" type="462c0819:PsiDirectoryNode" />
+              <item name="jdbc" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="SimpleDBClients" type="b2602c69:ProjectViewProjectNode" />
+              <item name="SimpleDBEngine" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="simpledb" type="462c0819:PsiDirectoryNode" />
+              <item name="log" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="SimpleDBClients" type="b2602c69:ProjectViewProjectNode" />
+              <item name="SimpleDBEngine" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="simpledb" type="462c0819:PsiDirectoryNode" />
+              <item name="materialize" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="SimpleDBClients" type="b2602c69:ProjectViewProjectNode" />
+              <item name="SimpleDBEngine" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="simpledb" type="462c0819:PsiDirectoryNode" />
+              <item name="metadata" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="SimpleDBClients" type="b2602c69:ProjectViewProjectNode" />
@@ -467,10 +517,10 @@
       <window_info id="UI Designer" />
       <window_info id="Capture Tool" />
       <window_info id="Favorites" side_tool="true" />
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.24973376" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.24973376" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Version Control" />
-      <window_info active="true" anchor="bottom" id="Terminal" visible="true" weight="0.3289183" />
+      <window_info anchor="bottom" id="Terminal" visible="true" weight="0.3289183" />
       <window_info anchor="bottom" id="Event Log" side_tool="true" />
       <window_info anchor="bottom" id="Messages" weight="0.3289183" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -568,13 +618,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../SimpleDBEngine/src/simpledb/opt/TablePlanner.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="300">
-          <caret line="134" column="41" selection-start-line="134" selection-start-column="36" selection-end-line="134" selection-end-column="52" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../SimpleDBEngine/src/simpledb/server/StartServer.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="60">
@@ -598,8 +641,15 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/../SimpleDBEngine/src/simpledb/multibuffer/nestedblock/JoinBenchmarking.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="71" column="28" selection-start-line="71" selection-start-column="28" selection-end-line="71" selection-end-column="28" />
+        <state relative-caret-position="150">
+          <caret line="89" column="37" lean-forward="true" selection-start-line="89" selection-start-column="37" selection-end-line="89" selection-end-column="37" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../SimpleDBEngine/src/simpledb/opt/TablePlanner.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-120">
+          <caret line="20" column="21" selection-start-line="20" selection-start-column="21" selection-end-line="20" selection-end-column="21" />
         </state>
       </provider>
     </entry>

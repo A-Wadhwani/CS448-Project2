@@ -126,10 +126,13 @@ public class JoinBenchmarking {
     }
 
     public static void main(String[] args) throws SQLException {
+//        runTest(300, 1); // Index Join
+//        runTest(300, 2); // Block Nested Loop Join
+//        runTest(300, 3); // Multi Buffer Product and Select
 //        runTests();
-        correctnessTest();
+//        correctnessTest();
 //        writeToFile();
- //       testSelection();
+//        testSelection();
     }
 
     public static void testSelection() throws SQLException {
@@ -148,7 +151,7 @@ public class JoinBenchmarking {
         }
     }
 
-    public static void correctnessTest() throws SQLException {
+    private static void correctnessTest() throws SQLException {
         matches = new HashMap<>();
         searchkeys = new ArrayList<>();
 

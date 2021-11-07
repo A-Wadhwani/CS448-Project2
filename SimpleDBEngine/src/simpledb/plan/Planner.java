@@ -10,12 +10,12 @@ import simpledb.parse.*;
 public class Planner {
    private QueryPlanner qplanner;
    private UpdatePlanner uplanner;
-   
+
    public Planner(QueryPlanner qplanner, UpdatePlanner uplanner) {
       this.qplanner = qplanner;
       this.uplanner = uplanner;
    }
-   
+
    /**
     * Creates a plan for an SQL select statement, using the supplied planner.
     * @param qry the SQL query string
@@ -23,12 +23,18 @@ public class Planner {
     * @return the scan corresponding to the query plan
     */
    public Plan createQueryPlan(String qry, Transaction tx) {
+      System.out.println("Starting timer for create query plan");
+      long time1 = System.nanoTime();
       Parser parser = new Parser(qry);
       QueryData data = parser.query();
       verifyQuery(data);
+      long time2 = System.nanoTime();
+      long time = time2 - time1;
+      System.out.println("ending timer for create query plan");
+      System.out.println("Time taken : "+(time/1000000.00000) +" ms");
       return qplanner.createPlan(data, tx);
    }
-   
+
    /**
     * Executes an SQL insert, delete, modify, or
     * create statement.
@@ -58,7 +64,7 @@ public class Planner {
       else
          return 0;
    }
- 
+
    // SimpleDB does not verify queries, although it should.
    private void verifyQuery(QueryData data) {
    }
