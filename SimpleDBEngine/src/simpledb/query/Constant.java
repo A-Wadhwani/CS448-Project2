@@ -23,12 +23,15 @@ public class Constant implements Comparable<Constant> {
    public String asString() {
       return sval;
    }
-   
+
    public boolean equals(Object obj) {
+      if (obj == null){
+         return false;
+      }
       Constant c = (Constant) obj;
       return (ival != null) ? ival.equals(c.ival) : sval.equals(c.sval);
    }
-   
+
    public int compareTo(Constant c) {
       return (ival != null) ? ival.compareTo(c.ival) : sval.compareTo(c.sval);
    }

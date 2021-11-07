@@ -1,7 +1,10 @@
 package simpledb.opt;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
+import simpledb.materialize.MergeJoinPlan;
 import simpledb.multibuffer.nestedblock.NestedBlockJoinPlan;
 import simpledb.tx.Transaction;
 import simpledb.record.*;
@@ -62,8 +65,8 @@ public class TablePlanner {
     * @return a join plan of the plan and this table
     */
 
-   public static boolean DEBUG_MODE = false;
-   public static int MODE = 0;
+   public static boolean DEBUG_MODE = true;
+   public static int MODE = 2;
    public static Plan DEBUG_PLAN = null;
 
    public Plan makeJoinPlan(Plan current) {
@@ -76,15 +79,26 @@ public class TablePlanner {
          // Select Plan p based on cost estimation for IndexJoin, MergeJoin and BlockNestedJoin in blocks accessed
          Plan p = makeProductJoin(current, currsch);
          TablePlanner.MODE = 1;
-         Plan p1 = makeNestedBlockJoin(current, currsch);
-         if (p1.blocksAccessed() < p.blocksAccessed()){
+         Plan p1 = makeMergeJoin(current, currsch);
+         if (p1 != null && p1.blocksAccessed() < p.blocksAccessed()){
+            System.out.println("Merge Join");
             p = p1;
+            TablePlanner.MODE = 4;
+         }
+         Plan p2 = makeNestedBlockJoin(current, currsch);
+         if (p2.blocksAccessed() < p.blocksAccessed()){
+            System.out.println("Nested Block Join");
+            p = p2;
             TablePlanner.MODE = 2;
          }
-         Plan p2 = makeIndexJoin(current, currsch);
-         if (p2 != null && p2.blocksAccessed() < p.blocksAccessed()){
-            p = p2;
+         Plan p3 = makeIndexJoin(current, currsch);
+         if (p3 != null && p3.blocksAccessed() < p.blocksAccessed()){
+            System.out.println("Index Join");
+            p = p3;
             TablePlanner.MODE = 3;
+         }
+         if (TablePlanner.MODE == 1){
+            System.out.println("Product Join");
          }
          return p;
       } else {
@@ -93,12 +107,22 @@ public class TablePlanner {
                DEBUG_PLAN = makeIndexJoin(current, currsch);
                if (DEBUG_PLAN == null) {
                   MODE = 3;
+                  System.out.println("Index Join failed.");
                   DEBUG_PLAN = makeProductJoin(current, currsch);
                   return DEBUG_PLAN;
                }
                return DEBUG_PLAN;
             case 2:
                DEBUG_PLAN = makeNestedBlockJoin(current, currsch);
+               return DEBUG_PLAN;
+            case 4:
+               System.out.println("Merge Join");
+               DEBUG_PLAN = makeMergeJoin(current, currsch);
+               if (DEBUG_PLAN == null){
+                  System.out.println("Merge Join failed.");
+                  MODE = 3;
+                  DEBUG_PLAN = makeProductJoin(current, currsch);
+               }
                return DEBUG_PLAN;
             default:
                DEBUG_PLAN = makeProductJoin(current, currsch);
@@ -144,8 +168,34 @@ public class TablePlanner {
    }
 
    private Plan makeNestedBlockJoin(Plan current, Schema currsch) {
-     // Plan p = addSelectPred(myplan);
       return new NestedBlockJoinPlan(tx, current, myplan, mypred.joinSubPred(currsch, myschema));
+   }
+
+   private Plan makeMergeJoin(Plan current, Schema currsch) {
+      List<Term> listOfTerms = mypred.getTerms();
+      Plan p;
+      for (int i = 0; i < listOfTerms.size(); i++) {
+         Term term = listOfTerms.get(i);
+         if (!term.isEqual())
+            continue;
+         if (term.getLhs().isFieldName() && term.getRhs().isFieldName()) {
+            String field1 = term.getLhs().asFieldName();
+            String field2 = term.getRhs().asFieldName();
+
+            if (currsch.hasField(field2) && myschema.hasField(field1)) {
+               p = new MergeJoinPlan(tx, current, myplan, field2, field1);
+               p = addSelectPred(p);
+               return addJoinPred(p, currsch);
+            }
+            else if (currsch.hasField(field1) && myschema.hasField(field2)) {
+               p = new MergeJoinPlan(tx, current, myplan, field1, field2);
+               p = addSelectPred(p);
+               return addJoinPred(p, currsch);
+            }
+         }
+      }
+
+      return null;
    }
 
    private Plan makeProductJoin(Plan current, Schema currsch) {

@@ -135,6 +135,18 @@ public class Term {
          return null;
    }
 
+   public Expression getLhs() {
+      return lhs;
+   }
+
+   public Expression getRhs() {
+      return rhs;
+   }
+
+   public boolean isEqual() {
+      return eq;
+   }
+
    /**
     * Return true if both of the term's expressions
     * apply to the specified schema.
