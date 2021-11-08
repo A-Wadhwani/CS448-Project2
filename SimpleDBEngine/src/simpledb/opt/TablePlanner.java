@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+import simpledb.JoinBenchmarking;
 import simpledb.materialize.MergeJoinPlan;
 import simpledb.multibuffer.nestedblock.NestedBlockJoinPlan;
 import simpledb.tx.Transaction;
@@ -78,8 +79,14 @@ public class TablePlanner {
       if (!DEBUG_MODE) {
          // Select Plan p based on cost estimation for IndexJoin, MergeJoin and BlockNestedJoin in blocks accessed
          Plan p = makeProductJoin(current, currsch);
-         TablePlanner.MODE = 1;
+         JoinBenchmarking.productBlocksAccessed = p.blocksAccessed();
+         TablePlanner.MODE = 3;
          Plan p1 = makeMergeJoin(current, currsch);
+         if (p1 != null){
+            JoinBenchmarking.mergeBlocksAccessed = p1.blocksAccessed();
+         } else {
+            JoinBenchmarking.mergeBlocksAccessed = -1;
+         }
          if (p1 != null && p1.blocksAccessed() < p.blocksAccessed()){
             System.out.println("Merge Join");
             p = p1;
@@ -91,11 +98,17 @@ public class TablePlanner {
             p = p2;
             TablePlanner.MODE = 2;
          }
+         JoinBenchmarking.nestedBlocksAccessed = p2.blocksAccessed();
          Plan p3 = makeIndexJoin(current, currsch);
          if (p3 != null && p3.blocksAccessed() < p.blocksAccessed()){
             System.out.println("Index Join");
             p = p3;
-            TablePlanner.MODE = 3;
+            TablePlanner.MODE = 1;
+         }
+         if (p3 != null){
+            JoinBenchmarking.indexBlocksAccessed = p3.blocksAccessed();
+         } else {
+            JoinBenchmarking.indexBlocksAccessed = -1;
          }
          if (TablePlanner.MODE == 1){
             System.out.println("Product Join");

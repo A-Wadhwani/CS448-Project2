@@ -16,8 +16,14 @@ public class JoinBenchmarking {
     static boolean lessThan = false;
     static int recordsCount = 0;
     static ResultSet rs;
+    static String query = null;
     static HashMap<String, Integer> matches = new HashMap<>();
     static ArrayList<String> searchkeys = new ArrayList<>();
+
+    public static int indexBlocksAccessed = 0;
+    public static int mergeBlocksAccessed = 0;
+    public static int productBlocksAccessed = 0;
+    public static int nestedBlocksAccessed = 0;
 
     public static long joinTableTest(int n) throws SQLException {
         EmbeddedDriver d = new EmbeddedDriver();
@@ -78,6 +84,11 @@ public class JoinBenchmarking {
                     "from STUDENT, MAJOR " +
                     "where MId = MajorId";
         }
+
+        if (query != null) {
+            s = query;
+        }
+
         BufferMgr.hits = 0;
         BufferMgr.misses = 0;
         long time = System.currentTimeMillis();
@@ -140,26 +151,60 @@ public class JoinBenchmarking {
 
     public static void main(String[] args) throws SQLException {
 //        runTests();
-        correctnessTest();
-//        testSelection();
+//        correctnessTest();
+        testSelection();
     }
 
+    /* Tests if the correct join algorithm is chosen */
     public static void testSelection() throws SQLException {
         TablePlanner.DEBUG_MODE = false;
-        disableIndexing = true;
-        try {
-            joinTableTest(200);
-            if (TablePlanner.MODE == 2) {
-                System.out.println("TablePlanner picked Block Nested Join over Cross Product");
-            } else {
-                System.out.println("TablePlanner failed to pick Block Nested Join over Cross Product");
-            }
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
+
+        String out = "\n\n";
+        query = "select SId, SFirstName, SLastName, MId, MajorName, MajorAbbr " +
+                "from STUDENT, MAJOR " +
+                "where MId = MajorId";
+        out += "Running an equals join query" + "\n";
+        joinTableTest(200);
+        out += getBlocksAccessed();
+        out += "\n\n";
+
+        query = "select SId, SFirstName, SLastName, MId, MajorName, MajorAbbr " +
+                "from STUDENT, MAJOR " +
+                "where SId=MId";
+        out += "Running a non-indexed equals than join query" + "\n";
+        joinTableTest(200);
+        out += getBlocksAccessed();
+        out += "\n\n";
+
+        query = "select SId, SFirstName, SLastName, MId, MajorName, MajorAbbr " +
+                "from STUDENT, MAJOR " +
+                "where MId = MajorId and SId < 140";
+        out += "Running an equals join with multiple conditions query" + "\n";
+        joinTableTest(200);
+        out += getBlocksAccessed();
+        out += "\n\n";
+
+        query = "select SId, SFirstName, SLastName, MId, MajorName, MajorAbbr " +
+                "from STUDENT, MAJOR " +
+                "where MId < MajorId";
+        out += "Running a less than join query" + "\n";
+        joinTableTest(200);
+        out += getBlocksAccessed();
+        out += "\n\n";
+
+        query = "select SId, SFirstName, SLastName, MId, MajorName, MajorAbbr " +
+                "from STUDENT, MAJOR " +
+                "where MId < MajorId and SId = 140";
+        out += "Running a less than with multiple conditions query" + "\n";
+        joinTableTest(200);
+        out += getBlocksAccessed();
+        out += "\n\n";
+
+        System.out.println(out);
     }
 
-    private static void correctnessTest() throws SQLException{
+    /* Tests if all joins give the same result */
+    private static void correctnessTest() throws SQLException {
         if (!correctnessEqualsTest()) {
             System.out.println("Correctness test failed for Equal Join");
             return;
@@ -171,6 +216,18 @@ public class JoinBenchmarking {
         System.out.println("Both tests passed!");
     }
 
+    /* Run tests to see performance of all join types */
+    private static void runTests() {
+        int[] sizes = new int[]{200, 600, 1000, 1400, 2000};
+        StringBuilder s1 = new StringBuilder();
+        for (int size : sizes) {
+            for (int j = 1; j <= 4; j++) {
+                s1.append(runTest(size, j));
+            }
+        }
+        System.out.println("\n\n---FINAL RESULTS---");
+        System.out.print(s1);
+    }
 
     private static boolean correctnessEqualsTest() throws SQLException {
         matches = new HashMap<>();
@@ -182,10 +239,10 @@ public class JoinBenchmarking {
 
         int count = 3; // All the three joins should have the same results => Same tuples
         for (String key : searchkeys) {
-             if (matches.get(key) != count) { // Check if all the results are the same
-                 System.out.println("Incorrect results for " + key);
-                 return false;
-             }
+            if (matches.get(key) != count) { // Check if all the results are the same
+                System.out.println("Incorrect results for " + key);
+                return false;
+            }
         }
         System.out.println("All Equal Join tests passed.");
         return true;
@@ -209,18 +266,6 @@ public class JoinBenchmarking {
         }
         System.out.println("All Less Than tests passed.");
         return true;
-    }
-
-    private static void runTests() {
-        int[] sizes = new int[]{200, 600, 1000, 1400, 2000};
-        StringBuilder s1 = new StringBuilder();
-        for (int size : sizes) {
-            for (int j = 1; j <= 4; j++) {
-                s1.append(runTest(size, j));
-            }
-        }
-        System.out.println("\n\n---FINAL RESULTS---");
-        System.out.print(s1);
     }
 
     private static void writeToFile() {
@@ -255,6 +300,38 @@ public class JoinBenchmarking {
         }
     }
 
+    private static String getBlocksAccessed(){
+        String out = "";
+        out += "    Number of Blocks Accessed in Product Join: " + productBlocksAccessed + "\n";
+        out += "    Number of Blocks Accessed in Block Nested Join: " + nestedBlocksAccessed + "\n";
+        if (indexBlocksAccessed >= 0){
+            out += "    Number of Blocks Accessed in Index Join: " + indexBlocksAccessed + "\n";
+        } else {
+            out += "    Index Join was not possible\n";
+        }
+        if (mergeBlocksAccessed >= 0){
+            out += "    Number of Blocks Accessed in Merge Join: " + mergeBlocksAccessed + "\n";
+        } else {
+            out += "    Merge Join was not possible\n";
+        }
+        String test = "";
+        switch (TablePlanner.MODE) {
+            case 1:
+                test = "Index";
+                break;
+            case 2:
+                test = "Block Nested";
+                break;
+            case 3:
+                test = "Product";
+                break;
+            case 4:
+                test = "Merge";
+                break;
+        }
+        out += "    " + test + " join was selected\n";
+        return out;
+    }
 
     static Random rand = new Random(42); // For number generation
 
