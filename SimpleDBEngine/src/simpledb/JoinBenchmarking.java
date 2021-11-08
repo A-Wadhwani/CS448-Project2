@@ -127,12 +127,11 @@ public class JoinBenchmarking {
             result += (test + " hits: " + BufferMgr.hits) + "\n";
             result += (test + " misses (disk reads): " + BufferMgr.misses) + "\n" + "\n";
             if (TablePlanner.MODE != type) {
-                return null;
-//                return test + " mode was not possible.\n\n";
+                return test + " mode was not possible.\n\n";
             }
             csvForm += n + "," + test + "," + time + "," + TablePlanner.DEBUG_PLAN.blocksAccessed() + "," +
                     recordsCount + "," + BufferMgr.hits + "," + BufferMgr.misses;
-            return csvForm;
+            return result;
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -140,12 +139,8 @@ public class JoinBenchmarking {
     }
 
     public static void main(String[] args) throws SQLException {
-//        runTest(300, 1); // Index Join
-//        runTest(300, 2); // Block Nested Loop Join
-//        runTest(300, 3); // Multi Buffer Product and Select
 //        runTests();
-//        correctnessTest();
-        writeToFile();
+        correctnessTest();
 //        testSelection();
     }
 
@@ -164,9 +159,22 @@ public class JoinBenchmarking {
         }
     }
 
-    private static void correctnessTest() throws SQLException {
+    private static void correctnessTest() throws SQLException{
+        if (!correctnessEqualsTest()) {
+            System.out.println("Correctness test failed for Equal Join");
+            return;
+        }
+        if (!correctnessLessThanTest()) {
+            System.out.println("Correctness test failed for Less Than Join");
+            return;
+        }
+        System.out.println("Both tests passed!");
+    }
+
+
+    private static boolean correctnessEqualsTest() throws SQLException {
         matches = new HashMap<>();
-        searchkeys = new ArrayList<>();
+        searchkeys = new ArrayList<>(); // Reset these to empty.
 
         runTest(200, 2); // Block Nested Loop Join
         runTest(200, 3); // Multi Buffer Product and Select
@@ -176,14 +184,35 @@ public class JoinBenchmarking {
         for (String key : searchkeys) {
              if (matches.get(key) != count) { // Check if all the results are the same
                  System.out.println("Incorrect results for " + key);
-                 return;
+                 return false;
              }
         }
-        System.out.println("All tests passed.");
+        System.out.println("All Equal Join tests passed.");
+        return true;
+    }
+
+    private static boolean correctnessLessThanTest() throws SQLException {
+        matches = new HashMap<>();
+        searchkeys = new ArrayList<>(); // Reset these to empty.
+
+        lessThan = true;
+        runTest(200, 2); // Block Nested Loop Join
+        runTest(200, 3); // Multi Buffer Product and Select
+        lessThan = false;
+
+        int count = 2; // All the three joins should have the same results => Same tuples
+        for (String key : searchkeys) {
+            if (matches.get(key) != count) { // Check if all the results are the same
+                System.out.println("Incorrect results for " + key);
+                return false;
+            }
+        }
+        System.out.println("All Less Than tests passed.");
+        return true;
     }
 
     private static void runTests() {
-        int[] sizes = new int[]{200, 400, 600, 800, 1000};
+        int[] sizes = new int[]{200, 600, 1000, 1400, 2000};
         StringBuilder s1 = new StringBuilder();
         for (int size : sizes) {
             for (int j = 1; j <= 4; j++) {
